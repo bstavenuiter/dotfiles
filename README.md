@@ -1,2 +1,2 @@
 # dotfiles
-Contains my most precious dot foles 
+Contains my most precious dot files 
