@@ -11,7 +11,7 @@ cmd + alt - right : yabai -m window --ratio rel:0.2
 cmd + alt - left : yabai -m window --ratio rel:-0.2
 
 # Move window to other screen
-ctrl + cmd + alt - left : yabai -m window --focus west || yabai -m display --focus west
-ctrl + cmd + alt - right : yabai -m window --focus east || yabai -m display --focus east
-ctrl + cmd + alt - up : yabai -m window --focus north || yabai -m display --focus north
-ctrl + cmd + alt - down : yabai -m window --focus south || yabai -m display --focus south
+cmd + ctrl + alt - left : yabai -m window --display west ; yabai -m display --focus west
+cmd + ctrl + alt - right : yabai -m window --display east ; yabai -m display --focus east
+cmd + ctrl + alt - up : yabai -m window --display north ; yabai -m display --focus north
+cmd + ctrl + alt - down : yabai -m window --display south ; yabai -m display --focus south
