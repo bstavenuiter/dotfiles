@@ -126,7 +126,8 @@ keymap('n', '<leader>sI', '<Plug>SidewaysArgumentInsertFirst', {silent = true})
 keymap('n', '<leader>sA', '<Plug>SidewaysArgumentAppendLast', {silent = true})
 
 -- formatting via null-ls
-keymap('n', '<leader>ff', ':lua vim.lsp.buf.formatting()<cr>', opts)
+keymap('n', '<leader>ff', ':lua vim.lsp.buf.format({async = true})<cr>', opts)
+-- TODO: fix virual selection formatting
 keymap('v', '<leader>ff', ':lua vim.lsp.buf.range_formatting()<cr>', opts)
 
 -- vim dap testing
