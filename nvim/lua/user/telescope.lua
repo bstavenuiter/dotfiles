@@ -7,6 +7,14 @@ local actions = require "telescope.actions"
 
 --[[ Setup telescope ]]--
 telescope.setup {
+    defaults = {
+        sorting_strategy = 'ascending',
+        layout_config = {
+            horizontal = {
+                prompt_position = "top"
+            },
+        },
+    },
     extensions = {
         fzf = {
             fuzzy = true,                    -- false will only do exact matching
