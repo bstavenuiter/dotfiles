@@ -15,3 +15,6 @@ cmd + ctrl + alt - left : yabai -m window --display west ; yabai -m display --fo
 cmd + ctrl + alt - right : yabai -m window --display east ; yabai -m display --focus east
 cmd + ctrl + alt - up : yabai -m window --display north ; yabai -m display --focus north
 cmd + ctrl + alt - down : yabai -m window --display south ; yabai -m display --focus south
+
+# Toggle window fullscreen
+alt + shift - t: yabai -m window --toggle zoom-fullscreen
