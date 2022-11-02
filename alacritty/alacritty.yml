@@ -1,0 +1,38 @@
+window:
+  padding:
+    x: 2
+    y: 2
+
+font:
+  glyph_offset:
+    x: 0
+    y: 5
+
+  normal:
+    family: FantasqueSansMono Nerd Font Mono
+
+  bold:
+    family: FantasqueSansMono Nerd Font Mono
+
+  italic:
+    family: FantasqueSansMono Nerd Font Mono
+
+  bold_italic:
+    family: FantasqueSansMono Nerd Font Mono
+
+  size: 20
+
+  offset:
+      x: 0    # For letter spacing.
+      y: 10    # For line spacing. 
+
+  AppleFontSmoothing: 0
+
+# allow alt-left and alt-rigth to jump word
+key_bindings:
+  - { key: Right, mods: Alt, chars: "\x1BF" }
+  - { key: Left,  mods: Alt, chars: "\x1BB" }
+
+# allow mouse selection for copy text
+selection:
+  save_to_clipboard: true
