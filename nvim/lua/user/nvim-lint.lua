@@ -4,17 +4,31 @@ if not lint_status_ok then
 end
 
 lint.linters_by_ft = {
-  markdown = {'vale',},
-  php = {'phpcs',},
-  js = {'eslint',},
+    markdown = {'vale',},
+    -- php = {'phpcs',},
+    js = {'eslint',},
 }
 
-local phpcs = require('lint.linters.phpcs')
-phpcs.args = {
-  '-q',
-  '--config=vendor/socialblue/php-code-style/easy-coding-standard.php',
-  '--report=json',
-}
+vim.api.nvim_create_autocmd({ "BufWritePost" }, {
+  callback = function()
+    require("lint").try_lint()
+  end,
+})
+--[[ local phpcs = require('lint.linters.phpcs') ]]
+--[[ phpcs.args = { ]]
+--[[   '-q', ]]
+--[[   '--config=vendor/socialblue/php-code-style/easy-coding-standard.php', ]]
+--[[   '--report=json', ]]
+--[[ } ]]
+
+-- local phpcs = require('lint.linters.phpcs')
+-- phpcs.args = {
+  -- '--fix',
+--   '-q',
+--   '--config=/Users/b.stavenuiter/code/php-code-style/easy-coding-standard.php',
+--   '--report=json',
+-- }
+
 
 -- au BufWritePost <buffer> lua require('lint').try_lint()
 -- vim.cmd([[
