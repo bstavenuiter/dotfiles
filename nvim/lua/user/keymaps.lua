@@ -168,3 +168,11 @@ keymap("n", "<leader>zT", "<cmd>Telekasten goto_today<CR>", opts)
 keymap("n", "<leader>zd", "<cmd>Telekasten find_daily_notes<CR>", opts)
 keymap("n", "<leader>zN", "<cmd>Telekasten new_templated_note<CR>", opts)
 keymap("n", "<leader>zt", "<cmd>Telekasten show_tags<CR>", opts)
+
+-- harpoon mapping
+keymap("n", "<leader>ha", "<cmd>lua require('harpoon.mark').add_file()<cr>", opts);
+keymap("n", "<C-s>", "<cmd>lua require('harpoon.ui').nav_file(1)<cr>", opts);
+keymap("n", "<C-t>", "<cmd>lua require('harpoon.ui').nav_file(2)<cr>", opts);
+keymap("n", "<C-n>", "<cmd>lua require('harpoon.ui').nav_file(3)<cr>", opts);
+keymap("n", "<C-e>", "<cmd>lua require('harpoon.ui').nav_file(4)<cr>", opts);
+keymap("n", "<leader>hq", "<cmd>lua require('harpoon.ui').toggle_quick_menu()<cr>", opts);
