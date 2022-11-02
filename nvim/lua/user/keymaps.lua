@@ -120,9 +120,6 @@ keymap('n', '<leader>yd', ':let @* = expand("%:p:h")<CR>', opts)
 --copy current md file to rtf in clipboard
 keymap('n', '<leader>yp', ':silent exec "!pandoc --standalone --from=markdown --to=rtf % | pbcopy"<cr>', opts)
 
-keymap('n', '˙', ':SidewaysLeft<cr>', opts)
-keymap('n', '¬', ':SidewaysRight<cr>', opts)
-
 keymap('n', '<leader>si', '<Plug>SidewaysArgumentInsertBefore', {silent = true})
 keymap('n', '<leader>sa', '<Plug>SidewaysArgumentAppendAfter', {silent = true})
 keymap('n', '<leader>sI', '<Plug>SidewaysArgumentInsertFirst', {silent = true})
