@@ -90,8 +90,8 @@ keymap('n', '<leader>es', ':e ~/.config/nvim/lua/user/luasnip.lua<cr>', opts)
 keymap('n', '<leader>ge', ':Ge:<CR>', opts)
 
 --nvim-tree
-keymap('n', '<C-n>', ':NvimTreeToggle<CR>', opts)
-keymap('n', '<leader>n', ':NvimTreeFindFile<CR>', opts)
+keymap('n', '<leader>f', ':NvimTreeToggle<CR>', opts)
+keymap('n', '<leader>fn', ':NvimTreeFindFile<CR>', opts)
 
 -- quickly create a diff
 keymap('n', '<leader>dt', ':windo diffthis<CR>', opts)
