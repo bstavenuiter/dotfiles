@@ -31,6 +31,7 @@ end
 
 -- Have packer use a popup window
 packer.init {
+  -- snapshot = "snapshot",
   display = {
     open_fn = function()
       return require("packer.util").float { border = "rounded" }
@@ -47,11 +48,11 @@ return packer.startup(function(use)
     use "nvim-lua/plenary.nvim" -- Useful lua functions used ny lots of plugins
     use "windwp/nvim-autopairs" -- Autopairs, integrates with both cmp and treesitter
     use "numToStr/Comment.nvim" -- Easily comment stuff
-    use { "kyazdani42/nvim-tree.lua",
-        requires = {
-            'kyazdani42/nvim-web-devicons', -- optional, for file icon
-        },
-    }
+    -- use { "kyazdani42/nvim-tree.lua",
+    --     requires = {
+    --         'kyazdani42/nvim-web-devicons', -- optional, for file icon
+    --     },
+    -- }
     -- use "akinsho/bufferline.nvim"
     use "moll/vim-bbye"
     use "qpkorr/vim-bufkill"
@@ -68,12 +69,13 @@ return packer.startup(function(use)
     use "antoinemadec/FixCursorHold.nvim" -- This is needed to fix lsp doc highlight
 
     -- Colorschemes
-    use "sainnhe/edge"
-    use "folke/tokyonight.nvim"
+    -- use "sainnhe/edge"
     --use 'marko-cerovac/material.nvim'
-    use 'rmehri01/onenord.nvim'
+    -- use 'rmehri01/onenord.nvim'
+    use "folke/tokyonight.nvim"
     use 'navarasu/onedark.nvim'
     use 'gruvbox-community/gruvbox'
+    use { "catppuccin/nvim", as = "catppuccin" }
 
     -- cmp plugins
     use "hrsh7th/nvim-cmp" -- The completion plugin
@@ -82,20 +84,28 @@ return packer.startup(function(use)
     use "hrsh7th/cmp-cmdline" -- cmdline completions
     use "saadparwaiz1/cmp_luasnip" -- snippet completions
     use "hrsh7th/cmp-nvim-lsp"
-    use "RRethy/vim-illuminate" --highlight current word
+    --[[ use "RRethy/vim-illuminate" --highlight current word ]]
 
     --linters
-    use 'mfussenegger/nvim-lint'
+    use 'mfussenegger/nvim-lint' --not using this because we use ecs, which isnt' supported out of the box
+    --[[ use 'dense-analysis/ale' ]]
 
     -- snippets
     use "L3MON4D3/LuaSnip" --snippet engine
     use "rafamadriz/friendly-snippets" -- a bunch of snippets to use
 
     -- LSP
-    use "neovim/nvim-lspconfig" -- enable LSP
-    use "williamboman/nvim-lsp-installer" -- simple to use language server installer
+    -- use "neovim/nvim-lspconfig" -- enable LSP
+    -- use "williamboman/nvim-lsp-installer" -- simple to use language server installer
+    use { 'VonHeikemen/lsp-zero.nvim' }
+    use {
+        "williamboman/mason.nvim",
+        "williamboman/mason-lspconfig.nvim",
+        "neovim/nvim-lspconfig",
+        "jose-elias-alvarez/null-ls.nvim", -- for formatters and linters
+        "jayp0521/mason-null-ls.nvim",
+    }
     use "tamago324/nlsp-settings.nvim" -- language server settings defined in json for
-    use "jose-elias-alvarez/null-ls.nvim" -- for formatters and linters
 
     -- Telescope
     use "nvim-telescope/telescope.nvim"
@@ -107,6 +117,7 @@ return packer.startup(function(use)
         run = ":TSUpdate",
     }
     use 'nvim-treesitter/nvim-treesitter-textobjects'
+    use 'nvim-treesitter/nvim-treesitter-context' -- shows the current function you are on at the top
     use "JoosepAlviste/nvim-ts-context-commentstring"
 
     -- Git
@@ -114,15 +125,19 @@ return packer.startup(function(use)
     use "tpope/vim-fugitive"
     use 'shumphrey/fugitive-gitlab.vim'
 
-    -- Highlight search
+    -- Highlight search stops when you move
     use "romainl/vim-cool"
 
+    -- Undo tree
+    use 'mbbill/undotree'
+
     -- note taking
-    use "vimwiki/vimwiki"
-    use "ellisonleao/glow.nvim"
+    --use "vimwiki/vimwiki"
+    --[[ use "ellisonleao/glow.nvim" ]]
+    use { 'renerocksai/telekasten.nvim' }
 
     -- side ways move function parameters left and right alt-h and alt-j
-    use "AndrewRadev/sideways.vim"
+    --[[ use "AndrewRadev/sideways.vim" ]]
 
     -- testing
     use "vim-test/vim-test"
@@ -131,13 +146,15 @@ return packer.startup(function(use)
     use "wakatime/vim-wakatime"
 
     -- Refactoring Tools
-    use {'phpactor/phpactor', ft = {'php'}, run = 'composer install'}
+    --[[ use {'phpactor/phpactor', ft = {'php'}, run = 'composer install'} ]]
 
     -- codi used for psysh inside the term, just like tinkerwell
-    use { 'metakirby5/codi.vim' }
+    --[[ use { 'metakirby5/codi.vim' } ]]
 
     -- easier navigation between tmux and vim
     use { 'christoomey/vim-tmux-navigator' }
+    -- the primeagen file navigation
+    use { 'ThePrimeagen/harpoon' }
 
     -- dap debugger
     use { 'mfussenegger/nvim-dap' }
@@ -145,9 +162,7 @@ return packer.startup(function(use)
     -- use { 'Pocco81/dap-buddy.nvim' }
     use { 'theHamsta/nvim-dap-virtual-text' }
 
-    use { 'kdheepak/lazygit.nvim' }
-    -- coverage
-    -- use { '/Users/b.stavenuiter/code/nvim-coverage/' }
+    --[[ use { 'kdheepak/lazygit.nvim' } ]]
 
     -- Automatically set up your configuration after cloning packer.nvim
     -- Put this at the end after all plugins
@@ -155,5 +170,4 @@ return packer.startup(function(use)
         require("packer").sync()
     end
 end)
-
 
