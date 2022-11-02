@@ -21,6 +21,15 @@ configs.setup {
         enable_autocmd = false,
     },
     textobjects = {
+        swap = {
+            enable = true,
+            swap_next = {
+                ["<leader>a"] = "@parameter.inner",
+            },
+            swap_previous = {
+                ["<leader>A"] = "@parameter.inner",
+            },
+        },
         select = {
             enable = true,
 
