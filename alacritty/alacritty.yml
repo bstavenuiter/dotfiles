@@ -32,6 +32,7 @@ font:
 key_bindings:
   - { key: Right, mods: Alt, chars: "\x1BF" }
   - { key: Left,  mods: Alt, chars: "\x1BB" }
+  - { key: Key6,  mods: Control, chars: "\x1e" } # issue with ctrl-^ https://github.com/alacritty/alacritty/issues/1108 annoying when using vim
 
 # allow mouse selection for copy text
 selection:
