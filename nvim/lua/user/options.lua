@@ -22,7 +22,6 @@ local options = {
   expandtab = true,                        -- convert tabs to spaces
   shiftwidth = 4,                          -- the number of spaces inserted for each indentation
   tabstop = 4,                             -- insert 2 spaces for a tab
-  cursorline = false,                      -- highlight the current line
   number = true,                           -- set numbered lines
   relativenumber = true,                   -- set relative numbered lines
   numberwidth = 4,                         -- set number column width to 2 {default 4}
@@ -33,8 +32,8 @@ local options = {
   guifont = "consolas:h17",                -- the font used in graphical neovim applications
   laststatus = 3,                          -- globalstatus
   cursorline = true,                       -- see current line better
-  undofile = true,                         -- enable undofiles
   digraph = true,                          -- enable to use ! <BS> - to enter -
+  winbar = [[%#Question#%t%m]],
 }
 
 vim.opt.shortmess:append "c"
@@ -46,29 +45,35 @@ end
 vim.cmd "set whichwrap+=<,>,[,],h,l"
 vim.cmd [[set iskeyword+=-]]
 vim.cmd [[set formatoptions-=cro]] -- TODO: this doesn't seem to work
-vim.cmd [[set list listchars=eol:↲,tab:↦\ ,nbsp:␣,extends:…,trail:⋅]]
+vim.cmd [[set list listchars=tab:↦\ ,trail:⋅]]
 
 -- https://www.reddit.com/r/neovim/comments/opipij/guide_tips_and_tricks_to_reduce_startup_and/
 local disabled_built_ins = {
-    "netrw",
-    "netrwPlugin",
-    "netrwSettings",
-    "netrwFileHandlers",
-    "gzip",
-    "zip",
-    "zipPlugin",
-    "tar",
-    "tarPlugin",
-    "getscript",
-    "getscriptPlugin",
-    "vimball",
-    "vimballPlugin",
-    "2html_plugin",
-    "logipat",
-    "rrhelper",
-    "spellfile_plugin"
+    -- "netrw",
+    -- "netrwPlugin",
+    -- "netrwSettings",
+    -- "netrwFileHandlers",
+    -- "gzip",
+    -- "zip",
+    -- "zipPlugin",
+    -- "tar",
+    -- "tarPlugin",
+    -- "getscript",
+    -- "getscriptPlugin",
+    -- "vimball",
+    -- "vimballPlugin",
+    -- "2html_plugin",
+    -- "logipat",
+    -- "rrhelper",
+    -- "spellfile_plugin"
 }
 
 for _, plugin in pairs(disabled_built_ins) do
     vim.g["loaded_" .. plugin] = 1
 end
+
+vim.g.netrw_liststyle = 3
+vim.g.netrw_banner = 0
+vim.g.netrw_browse_split = 0
+vim.g.netrw_winsize = 15
+
