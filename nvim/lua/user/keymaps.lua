@@ -98,7 +98,8 @@ keymap('n', '<leader>dt', ':windo diffthis<CR>', opts)
 keymap('n', '<leader>do', ':windo diffoff<CR>', opts)
 
 -- formatting a json file
-keymap('n', '<leader>lj', ":%!jq '.'<CR>", opts)
+keymap('n', '<leader>lj', "<cmd>%!jq<CR>", opts)
+keymap('n', '<leader>lx', "<cmd>%!xmllint --format --recover -<CR>", opts)
 
 -- trigger completion menu via ctrl-n
 keymap('i', '<C-n>', "<cmd>lua require('cmp').complete()<CR>", opts)
