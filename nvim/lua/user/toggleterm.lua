@@ -39,23 +39,21 @@ end
 vim.cmd('autocmd! TermOpen term://* lua set_terminal_keymaps()')
 
 local Terminal = require("toggleterm.terminal").Terminal
+local defaultTerminalOptions = {
+    hidden = true,
+    on_open = function(term)
+        vim.api.nvim_buf_set_keymap(term.bufnr, "n", "q", "<cmd>close<CR>", {noremap = true, silent = true})
+        vim.api.nvim_buf_set_keymap(term.bufnr, "t", "<C-c>", "<cmd>close<CR>", {noremap = true, silent = true})
+    end,
+}
 
-local php = Terminal:new({ cmd = "php -a", hidden = true })
+local php = Terminal:new(vim.tbl_extend('keep', { cmd = 'php -a' }, defaultTerminalOptions))
+
 function _PHP_TOGGLE()
 	php:toggle()
 end
 
-local term = Terminal:new({hidden = true })
-function _TERM_TOGGLE()
-    term:toggle()
-end
-
-local lazygit = Terminal:new({ cmd = "lazygit", hidden = true })
-function _LAZYGIT_TOGGLE()
-	lazygit:toggle()
-end
-
-local tinker = Terminal:new({ cmd = "php artisan tinker", hidden = true })
+local tinker = Terminal:new(vim.tbl_extend('keep', { cmd = "php artisan tinker" }, defaultTerminalOptions))
 function _TINKER_TOGGLE()
 	tinker:toggle()
 end
