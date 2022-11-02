@@ -111,92 +111,6 @@ end
 
 local snippets = {}
 
-local toexpand_count = 0
-
-snippets.php = {
-
-    -- create foreach without key
-    snippet("fore", fmt([[foreach (${prop} as ${value}) {{
-    {code}
-}}]],
-        {
-            prop = i(1, "object"),
-            value = i(2, "value"),
-            code = i(3, "code"),
-        }
-    )),
-
-    -- create foreach with key value
-    snippet("forev", fmt([[foreach (${prop} as ${key} => ${value}) {{
-    {code}
-}}]],
-        {
-            prop = i(1, "object"),
-            key = i(2, "object"),
-            value = i(3, "value"),
-            code = i(4, "code"),
-        }
-    )),
-
-    -- create public function
-    snippet("pubf", fmt([[public function {func}({arg}): {returnType}
-{{
-    {code}
-}}]],
-        {
-            func = i(1, "funcname"),
-            arg = i(2, "arg"),
-            returnType = i(3, "returnType"),
-            code = i(4, "code"),
-        }
-    )),
-
-    -- create protected function
-    snippet("prot", fmt([[protected function {func}({arg}): {returnType}
-{{
-    {code}
-}}]],
-        {
-            func = i(1, "funcname"),
-            arg = i(2, "arg"),
-            returnType = i(3, "returnType"),
-            code = i(4, "code"),
-        }
-    )),
-
-    -- create protected function
-    snippet("prof", fmt([[protected function {func}({arg}): {returnType}
-{{
-    {code}
-}}]],
-        {
-            func = i(1, "funcname"),
-            arg = i(2, "arg"),
-            returnType = i(3, "returnType"),
-            code = i(4, "code"),
-        }
-    )),
-
-    -- create private function
-    snippet("priv", fmt([[private function {func}({arg}): {returnType}
-{{
-    {code}
-}}]],
-        {
-            func = i(1, "funcname"),
-            arg = i(2, "arg"),
-            returnType = i(3, "returnType"),
-            code = i(4, "code"),
-        }
-    )),
-
-    -- insert self::assert
-    snippet("sa", fmt("self::assert{}({})", { i(1, "Name"), i(2, "test")})),
-    snippet("vd", fmt("var_dump({});", { i(1, "What") })),
-    snippet("pr", fmt("print_r({});", { i(1, "What") })),
-    snippet("e", t("exit;")),
-}
-
 -- `all` key means for all filetypes.
 -- Shared between all filetypes. Has lower priority than a particular ft tho
 snippets.all = {
@@ -204,29 +118,6 @@ snippets.all = {
         f(function()
             return os.date("%Y-%m-%d")
         end, {}),
-    }),
-
-    -- callbacks table
-    snippet("toexpand", c(1, { t "hello", t "world", t "last" }), {
-        callbacks = {
-            [1] = {
-                [events.enter] = function(--[[ node ]])
-                    toexpand_count = toexpand_count + 1
-                    print("Number of times entered:", toexpand_count)
-                end,
-            },
-        },
-    }),
-
-    -- regTrig
-    --    snippet.captures
-    -- snippet({ trig = "AbstractGenerator.*Factory", regTrig = true }, { t "yo" }),
-
-    -- third arg,
-    snippet("never_expands", t "this will never expand, condition is false", {
-        condition = function()
-            return false
-        end,
     }),
 
     -- docTrig ??
@@ -280,24 +171,6 @@ snippets.all = {
 
 table.insert(snippets.all, ls.parser.parse_snippet("example", "-- $TM_FILENAME\nfunc $1($2) $3 {\n\t$0\n}"))
 
--- luasnip.lua
--- func() {}
-
-table.insert(
-    snippets.all,
-    snippet("cond", {
-        t "will only expand in c-style comments",
-    }, {
-            condition = function(
-                line_to_cursor --[[ , matched_trigger, captures ]]
-            )
-                local commentstring = "%s*" .. vim.bo.commentstring:gsub("%%s", "")
-                -- optional whitespace followed by //
-                return line_to_cursor:match(commentstring)
-            end,
-        })
-)
-
 -- Make sure to not pass an invalid command, as io.popen() may write over nvim-text.
 table.insert(
     snippets.all,
@@ -338,7 +211,59 @@ table.insert(
     })
 )
 
-transform2
+ls.add_snippets("all", {
+
+    snippet("date", {
+        ls.function_node(function()
+            return os.date("%Y-%m-%d")
+        end, {}),
+    }),
+
+})
+
+ls.add_snippets("php", {
+
+    -- php type snippets
+    snippet("sa", fmt("self::assert{}({})", { i(1, "Name"), i(2, "test")})),
+    snippet("vd", fmt("var_dump({});", { i(1, "What") })),
+    snippet("pr", fmt("print_r({});", { i(1, "What") })),
+    snippet("e", t("exit;")),
+    snippet("pubf", fmt([[public function {}()
+{{
+    {}
+}}]], { i(1, "name"), i(2, "code")})),
+
+    snippet("pubfs", fmt([[public static function {}()
+{{
+    {}
+}}]], { i(1, "name"), i(2, "code")})),
+
+    snippet("priv", fmt([[private function {}()
+{{
+    {}
+}}]], { i(1, "name"), i(2, "code")})),
+
+    snippet("privs", fmt([[private static function {}()
+{{
+    {}
+}}]], { i(1, "name"), i(2, "code")})),
+
+    snippet("prot", fmt([[protected static function {}()
+{{
+    {}
+}}]], { i(1, "name"), i(2, "code")})),
+
+    snippet("prots", fmt([[protected static function {}()
+{{
+    {}
+}}]], { i(1, "name"), i(2, "code")})),
+
+    snippet("for", fmt([[for ($i = 0; $i < {}; $i++) {{
+    {}
+}}]], { i(1, "length"), i(2, "code")})),
+
+})
+
 -- initial text :: this is going to be replaced :: initial tthis is going to be replacedxt
 -- this is where we have text :: TEXT :: this is where we have TEXT
 
