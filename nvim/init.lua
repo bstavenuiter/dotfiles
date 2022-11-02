@@ -7,7 +7,7 @@ require("user.lsp-zero")
 require("user.colorscheme")
 require("user.mason")
 require("user.cmp")
-require("user.lsp")
+-- require("user.lsp")
 require("user.lsp.null-ls")
 
 require("user.telescope")
