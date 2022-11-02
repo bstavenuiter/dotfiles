@@ -36,8 +36,8 @@ keymap("n", "<S-l>", ":bnext<CR>", opts)
 keymap("n", "<S-h>", ":bprevious<CR>", opts)
 
 -- Move text up and down
-keymap("n", "∆", "<Esc>:m .+1<CR>==gi", opts)
-keymap("n", "˚", "<Esc>:m .-2<CR>==gi", opts)
+keymap("x", "<C-j>", ":m '>+1<cr>gv=gv", opts)
+keymap("x", "<C-k>", ":m '<-2<cr>gv=gv", opts)
 
 -- Visual --
 -- Stay in indent mode
