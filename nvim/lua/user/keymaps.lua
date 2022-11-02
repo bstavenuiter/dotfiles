@@ -156,10 +156,10 @@ keymap('n', '<leader>dr', ":lua require'dap'.step_out()<cr>", opts)
 keymap('n', '<leader>cb', ":lua require'dap'.clear_breakpoints()<cr>", opts)
 
 --
-keymap("n", "<leader>lg", "<cmd>lua _LAZYGIT_TOGGLE()<CR>", opts)
 keymap("n", "<leader>ph", "<cmd>lua _PHP_TOGGLE()<CR>", opts)
 keymap("n", "<leader>ti", "<cmd>lua _TINKER_TOGGLE()<CR>", opts)
-keymap("n", "<leader>tt", "<cmd>lua _TERM_TOGGLE()<CR>", opts)
+-- keymap("n", "<leader>tt", "<cmd>lua _TERM_TOGGLE()<CR>", opts)
+
 -- Telekasten mappings
 keymap("n", "<leader>zf", "<cmd>Telekasten find_notes<CR>", opts)
 keymap("n", "<leader>zg", "<cmd>Telekasten search_notes<CR>", opts)
