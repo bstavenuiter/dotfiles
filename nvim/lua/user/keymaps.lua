@@ -140,7 +140,7 @@ keymap('n', '<leader>cq', ':cclose<cr>', opts)
 
 keymap('n', '<leader>ci', ':Codi php<cr>', opts)
 keymap('n', '<leader>ll', ':!php vendor/bin/ecs check --fix --config=vendor/socialblue/php-code-style/easy-coding-standard.php --match-git-diff --quiet<cr>', opts)
-keymap('n', '<leader>lj', ':!./node_modules/.bin/eslint -c ./node_modules/js-code-style/.eslintrc.json --fix %<cr>', opts)
+keymap('n', '<leader>lu', ':!./node_modules/.bin/eslint -c ./node_modules/js-code-style/.eslintrc.json --fix %<cr>', opts)
 
 -- jump to end of line and insert trailing char
 keymap('i', ';;', '<ESC>:norm A;<CR>', opts)
