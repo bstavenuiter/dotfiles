@@ -71,8 +71,9 @@ yabai -m rule --add app="^Spotify$" space=5
 # yabai -m rule --add app="^PhpStorm$" manage=off
 # PhpStorm is sneaky it uses char 0x2013 as the dash, which is EN Dash
  # yabai -m rule --add app="^PhpStorm$" title="^.*–" manage=off
- yabai -m rule --add app="^PhpStorm$" title="Push Commits" manage=off
- yabai -m rule --add app="^PhpStorm$" title="Preferences" manage=off
- yabai -m rule --add app="Workplace Chat" title="Media Viewer" manage=off
+yabai -m rule --add app="^PhpStorm$" title="Push Commits" manage=off
+yabai -m rule --add app="^PhpStorm$" title="Preferences" manage=off
+yabai -m rule --add app="Workplace Chat" title="Media Viewer" manage=off
+yabai -m rule --add app="^PhpStorm$" title="^Pull to.*" manage=off
 
 echo "yabai configuration loaded.."
