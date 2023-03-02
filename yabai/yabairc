@@ -51,6 +51,7 @@ yabai -m rule --add app="^Preview$" manage=off
 yabai -m rule --add app="^DBngin$" manage=off
 yabai -m rule --add app="^Activity Monitor$" manage=off
 yabai -m rule --add app="^System Preferences$" manage=off
+yabai -m rule --add app="^System Settings$" manage=off
 yabai -m rule --add app="^Purk$" manage=off
 yabai -m rule --add app="^JetBrains Toolbox$" manage=off
 yabai -m rule --add app="^Flux$" manage=off
