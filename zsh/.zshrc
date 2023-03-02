@@ -3,7 +3,7 @@ NPM_PACKAGES="$HOME/.npm-packages"
 # Path to your oh-my-zsh installation.
 export ZSH=$HOME/.oh-my-zsh
 export NPM_TOKEN="31e96ee6-3678-45a3-9b2d-c6642c538dfd"
-export PATH=$PATH:$HOME/Library/Python/2.7/bin:$HOME/Applications/Opera.app/Contents/MacOS/
+export PATH=$PATH:$HOME/.local/bin:$HOME/Library/Python/2.7/bin:$HOME/Applications/Opera.app/Contents/MacOS/
 export DOLLAR=$
 export DYLD_LIBRARY_PATH=/usr/local/opt/openssl/lib:$DYLD_LIBRARY_PATH
 export BAT_THEME=OneHalfLight
@@ -12,7 +12,7 @@ export HISTCONTROL=ignorespace
 export NVM_DIR="$HOME/.nvm"
 export USE_GKE_GCLOUD_AUTH_PLUGIN=True
 
-export PATH=$HOME/bin:~/.config/phpmon/bin:$PATH
+export PATH=$HOME/.config/bin:~/.config/phpmon/bin:$PATH
 
 _has() {
       return $( whence $1 >/dev/null )
@@ -198,3 +198,5 @@ if [ -f '$HOME/google-cloud-sdk/path.zsh.inc' ]; then . '$HOME/google-cloud-sdk/
 if [ -f '$HOME/google-cloud-sdk/completion.zsh.inc' ]; then . '$HOME/google-cloud-sdk/completion.zsh.inc'; fi
 
 source <(kubectl completion zsh)
+
+source /Users/b.stavenuiter/.docker/init-zsh.sh || true # Added by Docker Desktop
