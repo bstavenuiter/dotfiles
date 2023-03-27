@@ -1,5 +1,4 @@
 local options = {
-    guicursor = "",
 
     nu = true,
     relativenumber = true,
