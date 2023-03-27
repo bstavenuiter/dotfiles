@@ -1,6 +1,7 @@
 
 require("bstavenuiter.remap")
 require("bstavenuiter.lazy")
+require("bstavenuiter.autocommands")
 
 require("impatient")
 
