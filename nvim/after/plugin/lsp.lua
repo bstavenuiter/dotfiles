@@ -55,10 +55,19 @@ local servers = {
             telemetry = { enable = false },
         },
     },
-    json = {
-      schemas = require('schemastore').json.schemas(),
-      validate = { enable = true },
+    jsonls = {
+        json = {
+            schemas = require('schemastore').json.schemas(),
+            validate = { enable = true },
+        },
     },
+    yamlls = {
+        yaml = {
+            schemas = {
+                ["https://raw.githubusercontent.com/instrumenta/kubernetes-json-schema/master/v1.18.0-standalone-strict/all.json"] = "/ops/kubernetes/*",
+            }
+        }
+    }
 }
 
 -- Setup neovim lua configuration
