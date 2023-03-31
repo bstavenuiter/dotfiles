@@ -58,15 +58,17 @@ yabai -m rule --add app="^Flux$" manage=off
 yabai -m rule --add app="^Installer$" manage=off
 yabai -m rule --add app="^System Information$" manage=off
 
-yabai -m rule --add app="^Brave Browser$" space=^1
-yabai -m rule --add app="^iTerm2$" space=^2
-yabai -m rule --add app="^Alacritty$" space=^2
+yabai -m rule --add app="^Brave Browser$" space=1
+yabai -m rule --add app="^iTerm2$" space=2
+yabai -m rule --add app="^Alacritty$" space=2
 yabai -m rule --add app="^Workplace Chat$" space=3
 yabai -m rule --add app="^WhatsApp$" space=3
 yabai -m rule --add app="^TablePlus$" space=4
 yabai -m rule --add app="^DBngin$" space=4
 yabai -m rule --add app="^Spotify$" space=5
 yabai -m rule --add app="^Sonos$" space=5
+
+yabai -m rule --add app="^Workplace Chat$" title="Workplace Call" space=6
 
 # yabai -m rule --add app="^Phpstorm$" manage=off
 
@@ -78,5 +80,6 @@ yabai -m rule --add app="^PhpStorm$" title="Preferences" manage=off
 yabai -m rule --add app="Workplace Chat" title="Media Viewer" manage=off
 yabai -m rule --add app="^PhpStorm$" title="^Pull to.*" manage=off
 yabai -m rule --add app="^PhpStorm$" title="^Commit Changes" manage=off
+
 
 echo "yabai configuration loaded.."
