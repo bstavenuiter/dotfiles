@@ -9,24 +9,22 @@ font:
     y: 5
 
   normal:
-    family: FantasqueSansMono Nerd Font Mono
+    family: FiraCode Nerd Font Mono
 
   bold:
-    family: FantasqueSansMono Nerd Font Mono
+    family: FiraCode Nerd Font Mono
 
   italic:
-    family: FantasqueSansMono Nerd Font Mono
+    family: FiraCode Nerd Font Mono
 
   bold_italic:
-    family: FantasqueSansMono Nerd Font Mono
+    family: FiraCode Nerd Font Mono
 
-  size: 20
+  size: 16
 
   offset:
       x: 0    # For letter spacing.
       y: 10    # For line spacing. 
-
-  AppleFontSmoothing: 0
 
 # allow alt-left and alt-rigth to jump word
 key_bindings:
