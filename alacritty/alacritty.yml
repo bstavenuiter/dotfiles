@@ -26,7 +26,7 @@ font:
       x: 0    # For letter spacing.
       y: 10    # For line spacing. 
 
-# allow alt-left and alt-rigth to jump word
+# allow alt-left and alt-right to jump word
 key_bindings:
   - { key: Right, mods: Alt, chars: "\x1BF" }
   - { key: Left,  mods: Alt, chars: "\x1BB" }
