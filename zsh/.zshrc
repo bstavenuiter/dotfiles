@@ -191,12 +191,12 @@ bindkey '^p' history-beginning-search-forward
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
+source /Users/b.stavenuiter/.docker/init-zsh.sh || true # Added by Docker Desktop
+
 # The next line updates PATH for the Google Cloud SDK.
-if [ -f '$HOME/google-cloud-sdk/path.zsh.inc' ]; then . '$HOME/google-cloud-sdk/path.zsh.inc'; fi
+if [ -f '/Users/b.stavenuiter/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/b.stavenuiter/google-cloud-sdk/path.zsh.inc'; fi
 
 # The next line enables shell command completion for gcloud.
-if [ -f '$HOME/google-cloud-sdk/completion.zsh.inc' ]; then . '$HOME/google-cloud-sdk/completion.zsh.inc'; fi
+if [ -f '/Users/b.stavenuiter/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/b.stavenuiter/google-cloud-sdk/completion.zsh.inc'; fi
 
 source <(kubectl completion zsh)
-
-source /Users/b.stavenuiter/.docker/init-zsh.sh || true # Added by Docker Desktop
