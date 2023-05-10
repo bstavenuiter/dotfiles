@@ -16,14 +16,20 @@ local options = {
     undodir = os.getenv("HOME") .. "/.vim/undodir",
     undofile = true,
 
+    -- foldcolumn = "1",
+
     hlsearch = false,
     incsearch = true,
 
     termguicolors = true,
 
+    background = "dark",
+
     scrolloff = 8,
     sidescrolloff = 8,
     signcolumn = "yes",
+
+    statuscolumn = "%C%=%{v:virtnum ? '' : v:relnum ? v:relnum : v:lnum} %s",
 
     updatetime = 50,
 
