@@ -15,6 +15,10 @@ local on_attach = function(client, bufnr)
         vim.keymap.set('n', keys, func, { buffer = bufnr, desc = desc })
     end
 
+
+    if vim.bo.filetype == 'markdown' then
+        client.completion.autocomplete = false
+    end
     nmap('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
     nmap('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
 
@@ -55,12 +59,14 @@ local servers = {
             telemetry = { enable = false },
         },
     },
+
     jsonls = {
         json = {
             schemas = require('schemastore').json.schemas(),
             validate = { enable = true },
         },
     },
+
     yamlls = {
         yaml = {
             schemas = {
@@ -164,3 +170,8 @@ cmp.setup {
         }),
     },
 }
+cmp.setup.filetype('markdown', {
+    completion = {
+        autocomplete = false
+    }
+})
