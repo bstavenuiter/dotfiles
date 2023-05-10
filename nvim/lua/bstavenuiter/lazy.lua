@@ -16,6 +16,7 @@ vim.opt.rtp:prepend(lazypath)
 require("lazy").setup({
     -- colorscheme
     { "navarasu/onedark.nvim", lazy = false },
+    { "rmehri01/onenord.nvim", lazy = false },
 
     "nathom/filetype.nvim",
 
@@ -50,7 +51,13 @@ require("lazy").setup({
 
     { "VonHeikemen/lsp-zero.nvim",
         dependencies = {
-            'neovim/nvim-lspconfig',
+            {'neovim/nvim-lspconfig'},
+            {
+                'williamboman/mason.nvim',
+                build = function()
+                    pcall(vim.cmd, 'MasonUpdate')
+                end,
+            },
             'williamboman/mason.nvim',
             'williamboman/mason-lspconfig.nvim',
 
@@ -82,7 +89,6 @@ require("lazy").setup({
     -- linting and formatting
     "jose-elias-alvarez/null-ls.nvim",
     "jay-babu/mason-null-ls.nvim",
-    "MunifTanjim/prettier.nvim",
 
     -- better status line
     "nvim-lualine/lualine.nvim", -- Fancier statusline
@@ -108,7 +114,44 @@ require("lazy").setup({
     };
 
     -- note taking
-    "renerocksai/telekasten.nvim",
+    -- "renerocksai/telekasten.nvim",
+    {
+        'jakewvincent/mkdnflow.nvim',
+        opts = {
+            rocks = 'luautf8', -- Ensures optional luautf8 dependency is installed
+        },
+        config = function()
+            require('mkdnflow').setup({
+                mappings = {
+                    MkdnEnter = {{'i', 'n', 'v'}, '<CR>'} -- This monolithic command has the aforementioned
+                    -- insert-mode-specific behavior and also will trigger row jumping in tables. Outside
+                    -- of lists and tables, it behaves as <CR> normally does.
+                    -- MkdnNewListItem = {'i', '<CR>'} -- Use this command instead if you only want <CR> in
+                    -- insert mode to add a new list item (and behave as usual outside of lists).
+                },
+                new_file_template = {
+                    use_template = true,
+                    placeholders = {
+                        before = {
+                            title = "link_title",
+                            date = "os_date"
+                        },
+                        after = {}
+                    },
+                    template = [[--- 
+title: {{ title }} 
+date: {{ date }}
+participants: 
+documentation: 
+  
+---
+  
+# 
+]]
+                },
+            })
+        end
+    },
 
     -- better lsp for rust
     "simrat39/rust-tools.nvim",
@@ -123,5 +166,8 @@ require("lazy").setup({
 
     { "phpactor/phpactor",
         build = "composer install --no-dev -o",
-    }
+    },
+
+    -- lsp Autocompletion for json and yaml files
+    {'b0o/schemastore.nvim'},
 })
