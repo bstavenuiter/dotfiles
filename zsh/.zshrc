@@ -104,8 +104,8 @@ export PATH=$NPM_PACKAGES/bin:$PATH:/Applications/MySQLWorkbench.app/Contents/Ma
 source $ZSH/oh-my-zsh.sh
 source $HOME/.oh-my-zsh/custom/plugins/zsh-abbr/zsh-abbr.zsh
  
-export NVM_DIR=~/.nvm
-source $(brew --prefix nvm)/nvm.sh
+#export NVM_DIR=~/.nvm
+#source $(brew --prefix nvm)/nvm.sh
 
 #You may need to manually set your language environment
 export LANG=en_US.UTF-8
@@ -186,7 +186,7 @@ cdl() { cd $(lct path $1) }
 bindkey '^ ' autosuggest-accept
 bindkey '^n' history-beginning-search-backward
 bindkey '^p' history-beginning-search-forward
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+#[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
@@ -199,4 +199,20 @@ if [ -f '/Users/b.stavenuiter/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/b
 # The next line enables shell command completion for gcloud.
 if [ -f '/Users/b.stavenuiter/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/b.stavenuiter/google-cloud-sdk/completion.zsh.inc'; fi
 
-source <(kubectl completion zsh)
+# Check if 'kubectl' is a command in $PATH
+if [ $commands[kubectl] ]; then
+
+  # Placeholder 'kubectl' shell function:
+  # Will only be executed on the first call to 'kubectl'
+  kubectl() {
+
+    # Remove this function, subsequent calls will execute 'kubectl' directly
+    unfunction "$0"
+
+    # Load auto-completion
+    source <(kubectl completion zsh)
+
+    # Execute 'kubectl' binary
+    $0 "$@"
+  }
+fi
