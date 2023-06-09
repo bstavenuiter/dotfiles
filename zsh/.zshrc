@@ -2,7 +2,6 @@ NPM_PACKAGES="$HOME/.npm-packages"
 
 # Path to your oh-my-zsh installation.
 export ZSH=$HOME/.oh-my-zsh
-export NPM_TOKEN="31e96ee6-3678-45a3-9b2d-c6642c538dfd"
 export PATH=$PATH:$HOME/.local/bin:$HOME/Library/Python/2.7/bin:$HOME/Applications/Opera.app/Contents/MacOS/
 export DOLLAR=$
 export DYLD_LIBRARY_PATH=/usr/local/opt/openssl/lib:$DYLD_LIBRARY_PATH
