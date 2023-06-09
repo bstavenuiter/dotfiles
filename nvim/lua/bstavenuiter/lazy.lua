@@ -170,4 +170,5 @@ documentation:
 
     -- lsp Autocompletion for json and yaml files
     {'b0o/schemastore.nvim'},
+    'milanglacier/yarepl.nvim',
 })
