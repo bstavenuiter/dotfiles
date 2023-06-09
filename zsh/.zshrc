@@ -38,6 +38,8 @@ _force_prepend_to_path() {
     path=($1 ${(@)path:#$1})
 }
 
+eval "$(fnm env --use-on-cd)"
+
 ## install zoxide #######
 eval "$(zoxide init zsh)"
 ########################
