@@ -20,3 +20,6 @@ alt + shift - t: yabai -m window --toggle zoom-fullscreen
 # Swap window east west
 cmd + ctrl + alt - left : yabai -m window --swap west
 cmd + ctrl + alt - right : yabai -m window --swap east
+
+alt + shift - n: osascript -e 'activate application "Alacritty"' -e 'tell application "Alacritty"' -e 'tell application "System Events"' -e 'keystroke "a" using {control down}' -e 'keystroke "s"' -e 'keystroke "0"' -e 'delay 0.1' -e 'keystroke "a" using {control down}' -e 'keystroke "1"' -e 'keystroke "G"' -e 'end tell' -e 'end tell'
+alt + shift - e: osascript -e 'activate application "Alacritty"' -e 'tell application "Alacritty"' -e 'tell application "System Events"' -e 'keystroke "a" using {control down}' -e 'keystroke "s"' -e 'keystroke "0"' -e 'delay 0.1' -e 'keystroke "a" using {control down}' -e 'keystroke "0"' -e 'end tell' -e 'end tell'
