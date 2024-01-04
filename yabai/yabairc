@@ -81,6 +81,8 @@ yabai -m rule --add app="^PhpStorm$" title="Push Commits" manage=off
 yabai -m rule --add app="^PhpStorm$" title="Preferences" manage=off
 yabai -m rule --add app="^PhpStorm$" title="^Pull to.*" manage=off
 yabai -m rule --add app="^PhpStorm$" title="^Commit Changes" manage=off
+yabai -m rule --add app="^TablePlus$" manage=off
 
+yabai -m config --space 4 layout float
 
 echo "yabai configuration loaded.."
