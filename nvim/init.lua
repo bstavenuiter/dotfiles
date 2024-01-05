@@ -270,7 +270,12 @@ require('lazy').setup({
   --
   --    For additional information see: https://github.com/folke/lazy.nvim#-structuring-your-plugins
   { import = 'custom.plugins' },
-}, {})
+},{
+    change_detection = {
+      notify = false,
+    },
+})
+
 
 -- [[ Setting options ]]
 -- See `:help vim.o`
