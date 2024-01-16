@@ -19,6 +19,7 @@ return {
 	vim.keymap.set('n', '<leader>tn', ':lua require("neotest").run.run()<CR>', { desc = 'Run nearest test'})
 	vim.keymap.set('n', '<leader>ts', ':lua require("neotest").summary.toggle()<CR>', { desc = 'Toggle the summary'})
 	vim.keymap.set('n', '<leader>to', ':lua require("neotest").output_panel.toggle()<CR>', { desc = 'Open the output panel'})
+	vim.keymap.set('n', '<leader>te', ':lua require("neotest").output.open({ enter = true })<CR>', { desc = 'Open the output panel'})
 	vim.keymap.set('n', '<leader>td', ':require("neotest").run.run({strategy = "dap"})<CR>', { desc = 'Test nearest with debug'})
 
     end
