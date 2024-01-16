@@ -68,7 +68,9 @@ yabai -m rule --add app="^DBngin$" space=4
 yabai -m rule --add app="^Spotify$" space=5
 yabai -m rule --add app="^Sonos$" space=5
 yabai -m rule --add app="^PhpStorm$" space=6
+yabai -m rule --add app="^Google Chrome$" space=6
 
+# Move calls to space 6
 yabai -m rule --add app="^Workplace Chat$" title="Workplace Call" space=6
 
 # yabai -m rule --add app="^Phpstorm$" manage=off
