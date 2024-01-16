@@ -711,7 +711,7 @@ vim.api.nvim_set_keymap('n', '<leader>ge', ':Ge:<CR>', {silent = true, noremap =
 -- quick key to write file
 vim.keymap.set("n", "<leader>w", ":w<CR>", { desc = 'Quickly write the current buffer to file'})
 -- format file
-vim.keymap.set("n", "<leader>fo", ":Format<CR>", { desc = 'Quickly format the entire file'})
+--vim.keymap.set("n", "<leader>fo", ":Format<CR>", { desc = 'Quickly format the entire file'})
 
 vim.opt.relativenumber = true
 vim.opt.splitright = true
