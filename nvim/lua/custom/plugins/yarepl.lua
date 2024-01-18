@@ -69,8 +69,15 @@ return {
 		    callback = run_cmd_with_count 'REPLSendLine',
 		    desc = 'Send current line to REPL',
 		})
-		bufmap(0, 'n', '<LocalLeader>sf', '<CMD>exe "normal! ggVG\\<Esc>:REPLSendVisual\\<CR>"<CR>', {
-		    desc = 'Send current line to REPL',
+		bufmap(0, 'n', '<LocalLeader>sf', '', {
+		    callback = function ()
+			vim.cmd('REPLClose')
+			vim.cmd('REPLStart tinker')
+			vim.cmd('wincmd k');
+			vim.fn.feedkeys('ggVGojo');
+			vim.cmd('REPLSendVisual');
+		    end,
+		    desc = 'Send current file to REPL',
 		})
 		-- `<LocalLeader>sap` will send the current paragraph to the
 		-- buffer-attached REPL, or REPL 1 if there is no REPL attached.
