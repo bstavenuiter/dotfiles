@@ -1,5 +1,8 @@
 abbr bl="brew link"
 abbr bu="brew unlink"
+abbr bsl="brew services list"
+abbr bs="brew services start"
+abbr bss="brew services stop"
 abbr c="clear"
 abbr e="exit"
 abbr gf="git fetch"
