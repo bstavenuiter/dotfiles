@@ -22,6 +22,8 @@ config.colors = {
 	foreground = 'silver'
 }
 
+config.audible_bell = "Disabled"
+
 -- no padding
 config.window_padding = {
 	left = 0,
