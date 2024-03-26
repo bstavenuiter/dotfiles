@@ -1,10 +1,12 @@
 return {
     'nvim-neotest/neotest',
     dependencies = {
+	"nvim-neotest/nvim-nio",
 	"nvim-lua/plenary.nvim",
 	"olimorris/neotest-phpunit",
 	"theutz/neotest-pest",
 	"nvim-treesitter/nvim-treesitter",
+	"antoinemadec/FixCursorHold.nvim",
     },
 
     config = function()
@@ -12,7 +14,11 @@ return {
 	neotest.setup({
 	  adapters = {
 	    require("neotest-phpunit")
-	  }
+	  },
+	  output_panel = {
+	      enabled = true,
+	      open = "botright vsplit | vertical resize 50 | normal ="
+	  },
 	})
 
 	vim.keymap.set('n', '<leader>tf', ':lua require("neotest").run.run(vim.fn.expand("%"))<CR>')
