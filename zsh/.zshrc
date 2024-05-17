@@ -185,6 +185,7 @@ timezsh() {
 cdl() { cd $(lct path $1) }
 
 bindkey '^ ' autosuggest-accept
+bindkey '^y' autosuggest-accept
 bindkey '^n' history-beginning-search-backward
 bindkey '^p' history-beginning-search-forward
 #[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
