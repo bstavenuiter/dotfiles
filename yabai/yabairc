@@ -68,7 +68,7 @@ yabai -m rule --add app="^TablePlus$" space=4
 yabai -m rule --add app="^DBngin$" space=4
 yabai -m rule --add app="^Spotify$" space=5
 yabai -m rule --add app="^Sonos$" space=5
-yabai -m rule --add app="^PhpStorm$" space=6
+yabai -m rule --add app="^PhpStorm$" space=5
 yabai -m rule --add app="^Google Chrome$" space=6
 
 # Move calls to space 6
@@ -76,15 +76,15 @@ yabai -m rule --add app="^Workplace Chat$" title="Workplace Call" space=6
 
 # yabai -m rule --add app="^Phpstorm$" manage=off
 
-# yabai -m rule --add app="^PhpStorm$" manage=off
+yabai -m rule --add app="^PhpStorm$" manage=off
 # PhpStorm is sneaky it uses char 0x2013 as the dash, which is EN Dash
  # yabai -m rule --add app="^PhpStorm$" title="^.*–" manage=off
  yabai -m rule --add app="Workplace Chat" title="Media Viewer" manage=off
-yabai -m rule --add app="^PhpStorm$" title="Push Commits" manage=off
-yabai -m rule --add app="^PhpStorm$" title="Preferences" manage=off
-yabai -m rule --add app="^PhpStorm$" title="^Pull to.*" manage=off
-yabai -m rule --add app="^PhpStorm$" title="^Commit Changes" manage=off
-yabai -m rule --add app="^TablePlus$" manage=off
+# yabai -m rule --add app="^PhpStorm$" title="Push Commits" manage=off
+# yabai -m rule --add app="^PhpStorm$" title="Preferences" manage=off
+# yabai -m rule --add app="^PhpStorm$" title="^Pull to.*" manage=off
+# yabai -m rule --add app="^PhpStorm$" title="^Commit Changes" manage=off
+#yabai -m rule --add app="^TablePlus$" manage=off
 
 yabai -m config --space 4 layout float
 
