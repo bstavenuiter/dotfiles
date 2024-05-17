@@ -1,14 +1,18 @@
 -- note taking
-local opts = { noremap = true, silent = true }
-local keymap = vim.api.nvim_set_keymap
-keymap("n", "<leader>zf", ':lua require("telescope.builtin").find_files({cwd = "~/leadsio/notes/zettelkasten/", hidden=true, layout_config={prompt_position="top"}})<CR>', opts)
 return
 {
 	'jakewvincent/mkdnflow.nvim',
+
 	opts = {
 		rocks = 'luautf8', -- Ensures optional luautf8 dependency is installed
 	},
+
 	config = function()
+
+		local opts = { noremap = true, silent = true }
+		local keymap = vim.api.nvim_set_keymap
+		keymap("n", "<leader>zf", ':lua require("telescope.builtin").find_files({cwd = "~/leadsio/notes/zettelkasten/", hidden=true, layout_config={prompt_position="top"}})<CR>', opts)
+
 		require('mkdnflow').setup({
 			mappings = {
 				MkdnEnter = { { 'i', 'n', 'v' }, '<CR>' } -- This monolithic command has the aforementioned
