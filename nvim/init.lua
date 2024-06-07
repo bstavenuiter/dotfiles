@@ -412,9 +412,12 @@ require("lazy").setup({
 				--   },
 				-- },
 				-- pickers = {}
+        tag = "0.1.8",
         defaults = {
           sorting_strategy = "ascending",
+          layout_strategy = "horizontal",
           layout_config = {
+            prompt_position = "top",
             horizontal = {
               prompt_position = "top",
             },
