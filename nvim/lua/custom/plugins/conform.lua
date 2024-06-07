@@ -17,9 +17,7 @@ return {
 
 			local config_file = vim.fs.find("easy-coding-standard.php", { path = vim.loop.cwd() .. "/vendor/socialblue/php-code-style/"})[1]
 
-			print(vim.inspect(command))
 			if command == nil then
-				print( "$HOME/code/php-code-style/vendor/bin/ecs")
 				command = util.find_executable({
 					"$HOME/code/php-code-style/vendor/bin/ecs",
 				}, "ecs")
@@ -29,7 +27,6 @@ return {
 				config_file = "$HOME/code/php-code-style/easy-coding-standard.php"
 			end
 
-			print(config_file)
 			return {
 				command = command,
 				args = { "check", "$FILENAME", "--fix", "--config", config_file, '-n', '-q' },
