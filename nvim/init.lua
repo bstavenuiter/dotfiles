@@ -217,7 +217,14 @@ vim.opt.rtp:prepend(lazypath)
 -- NOTE: Here is where you install your plugins.
 require("lazy").setup({
 	-- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
-	"tpope/vim-sleuth", -- Detect tabstop and shiftwidth automatically
+	-- "tpope/vim-sleuth", -- Detect tabstop and shiftwidth automatically
+
+	{
+		dir = "~/code/telescope_jira_plugin/",
+		config = function()
+			require("jira").config()
+		end,
+	},
 
 	-- git integration
 	"tpope/vim-fugitive",
@@ -312,6 +319,10 @@ require("lazy").setup({
 				map({ "o", "x" }, "ih", ":<C-U>Gitsigns select_hunk<CR>", { desc = "select git hunk" })
 			end,
 		},
+	},
+
+	{
+		"ThePrimeagen/git-worktree.nvim",
 	},
 
 	-- NOTE: Plugins can also be configured to run lua code when they are loaded.
@@ -412,23 +423,23 @@ require("lazy").setup({
 				--   },
 				-- },
 				-- pickers = {}
-        tag = "0.1.8",
-        defaults = {
-          sorting_strategy = "ascending",
-          layout_strategy = "horizontal",
-          layout_config = {
-            prompt_position = "top",
-            horizontal = {
-              prompt_position = "top",
-            },
-          },
-          mappings = {
-            i = {
-              ["<C-u>"] = false,
-              ["<C-d>"] = false,
-            },
-          },
-        },
+				tag = "0.1.8",
+				defaults = {
+					sorting_strategy = "ascending",
+					layout_strategy = "horizontal",
+					layout_config = {
+						prompt_position = "top",
+						horizontal = {
+							prompt_position = "top",
+						},
+					},
+					mappings = {
+						i = {
+							["<C-u>"] = false,
+							["<C-d>"] = false,
+						},
+					},
+				},
 				extensions = {
 					["ui-select"] = {
 						require("telescope.themes").get_dropdown(),
@@ -491,9 +502,9 @@ require("lazy").setup({
 			-- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
 			{ "j-hui/fidget.nvim", opts = {} },
 
-      -- `neodev` configures Lua LSP for your Neovim config, runtime and plugins
-      -- used for completion, annotations and signatures of Neovim apis
-      { 'folke/neodev.nvim', opts = {} },
+			-- `neodev` configures Lua LSP for your Neovim config, runtime and plugins
+			-- used for completion, annotations and signatures of Neovim apis
+			{ "folke/neodev.nvim", opts = {} },
 		},
 		config = function()
 			-- Brief Aside: **What is LSP?**
@@ -686,20 +697,21 @@ require("lazy").setup({
 	{ -- Autoformat
 		"stevearc/conform.nvim",
 		opts = {
-			notify_on_error = false,
-			format_on_save = {
-				timeout_ms = 500,
-				lsp_fallback = true,
-			},
-			formatters_by_ft = {
-				lua = { "stylua" },
-				-- Conform can also run multiple formatters sequentially
-				-- python = { "isort", "black" },
-				--
-				-- You can use a sub-list to tell conform to run *until* a formatter
-				-- is found.
-				-- javascript = { { "prettierd", "prettier" } },
-			},
+			-- notify_on_error = false,
+			-- format_on_save = {
+			-- 	timeout_ms = 500,
+			-- 	lsp_fallback = true,
+			-- },
+			-- formatters_by_ft = {
+			-- 	lua = { "stylua" },
+			-- 	php = { "phpactor" },
+			-- Conform can also run multiple formatters sequentially
+			-- python = { "isort", "black" },
+			--
+			-- You can use a sub-list to tell conform to run *until* a formatter
+			-- is found.
+			-- javascript = { { "prettierd", "prettier" } },
+			-- },
 		},
 	},
 
@@ -732,7 +744,7 @@ require("lazy").setup({
 			--    you can use this plugin to help you. It even has snippets
 			--    for various frameworks/libraries/etc. but you will have to
 			--    set up the ones that are useful for you.
-			'rafamadriz/friendly-snippets',
+			"rafamadriz/friendly-snippets",
 		},
 		config = function()
 			-- See `:help cmp`
@@ -740,7 +752,7 @@ require("lazy").setup({
 			local luasnip = require("luasnip")
 			luasnip.config.setup({})
 
-      require('luasnip.loaders.from_vscode').lazy_load()
+			require("luasnip.loaders.from_vscode").lazy_load()
 
 			cmp.setup({
 				snippet = {
@@ -798,23 +810,24 @@ require("lazy").setup({
 		end,
 	},
 
-	{ -- You can easily change to a different colorscheme.
-		-- Change the name of the colorscheme plugin below, and then
-		-- change the command in the config to whatever the name of that colorscheme is
-		--
-		-- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`
-		"rmehri01/onenord.nvim",
-		lazy = false, -- make sure we load this during startup if it is your main colorscheme
-		priority = 1000, -- make sure to load this before all the other start plugins
+	-- color schemes ---
+	{
+		"olimorris/onedarkpro.nvim",
+		priority = 1000, -- Ensure it loads first
+		lazy = false, --
 		config = function()
-			-- Load the colorscheme here.
-			-- Like many other themes, this one has different styles, and you could load
-			-- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-			vim.cmd.colorscheme("onenord")
-
-			-- You can configure highlights by doing something like
-			-- vim.cmd.hi("Comment gui=none")
+			vim.cmd("colorscheme onedark")
 		end,
+	},
+
+	{
+		"rmehri01/onenord.nvim",
+		name = "onenord",
+	},
+
+	{
+		"rose-pine/neovim",
+		name = "rose-pine",
 	},
 
 	-- Highlight todo, notes, etc in comments
@@ -942,6 +955,8 @@ require("lazy").setup({
 		end,
 	},
 
+	{ "b0o/schemastore.nvim" },
+
 	-- The following two comments only work if you have downloaded the kickstart repo, not just copy pasted the
 	-- init.lua. If you want these files, they are in the repository, so you can just download them and
 	-- put them in the right spots if you want.
@@ -960,6 +975,13 @@ require("lazy").setup({
 	--  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
 	--    For additional information, see `:help lazy.nvim-lazy.nvim-structuring-your-plugins`
 	{ import = "custom.plugins" },
+}, {
+
+	rocks = { enabled = false },
+	change_detection = {
+		enabled = true,
+		notify = false,
+	},
 })
 
 vim.opt.relativenumber = true
@@ -996,6 +1018,7 @@ vim.keymap.set("n", "<leader>w", ":w<CR>", { desc = "Quickly write the current b
 -- fugitive
 vim.keymap.set("n", "<leader>ge", ":Ge:<CR>", { silent = true, noremap = true })
 vim.keymap.set("n", "<leader>bo", '<cmd>silent !open -a "Brave Browser" "%:p"<CR>')
+vim.keymap.set("n", "<leader>js", ":JiraSearch ")
 
 vim.cmd([[
   " Put these in an autocmd group, so that you can revert them with:
@@ -1017,18 +1040,11 @@ vim.cmd([[
   autocmd FileType gitcommit setlocal spell
 ]])
 
--- vim.api.nvim_create_autocmd({"BufEnter"}, {
---   pattern = { "*.md" },
---   callback = function()
---     local function replace_word_with_jira_link()
---       local word_under_cursor = vim.fn.expand("<cword>")
---       word_under_cursor = "https://leads-io.atlassian.net/browse/" .. word_under_cursor
---       vim.api.nvim_command('substitute \\w+' .. word_under_cursor .. ' ' .. 'test')
---     end
---
---     vim.api.nvim_buf_set_keymap(0, "n", "<leader>x", replace_word_with_jira_link(), { noremap = true })
---   end
--- })
+vim.o.expandtab = true
+
+vim.g.loaded_python3_provider = 0
+vim.g.loaded_perl_provider = 0
+vim.g.loaded_ruby_provider = 0
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
