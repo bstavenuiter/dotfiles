@@ -1,0 +1,46 @@
+import = [ "~/.config/alacritty/themes/themes/one_dark.toml" ]
+
+[font]
+size = 16
+
+[font.bold]
+family = "FiraCode Nerd Font"
+
+[font.bold_italic]
+family = "FiraCode Nerd Font"
+
+[font.glyph_offset]
+x = 0
+y = 5
+
+[font.italic]
+family = "FiraCode Nerd Font"
+
+[font.normal]
+family = "FiraCode Nerd Font"
+
+[font.offset]
+x = 0
+y = 10
+
+[[keyboard.bindings]]
+chars = "\u001BF"
+key = "Right"
+mods = "Alt"
+
+[[keyboard.bindings]]
+chars = "\u001BB"
+key = "Left"
+mods = "Alt"
+
+[[keyboard.bindings]]
+chars = "\u001E"
+key = "Key6"
+mods = "Control"
+
+[selection]
+save_to_clipboard = true
+
+[window.padding]
+x = 2
+y = 2
