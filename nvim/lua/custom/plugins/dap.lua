@@ -15,9 +15,6 @@ return {
 
 			require("nvim-dap-virtual-text").setup()
 
-			vim.keymap.set("n", "<space>b", dap.toggle_breakpoint)
-			vim.keymap.set("n", "<space>gb", dap.run_to_cursor)
-
 			dap.adapters.php = {
 				type = "executable",
 				command = "node",
@@ -39,12 +36,13 @@ return {
 			end)
 
 			vim.keymap.set("n", "<leader>db", ui.toggle) -- toggle the ui
-			vim.keymap.set("n", "<leader>dr", function() -- reset the layoud
+			vim.keymap.set("n", "<leader>dr", function() -- reset the layout
 				ui.setup()
 				ui.close()
 				ui.open()
 			end)
-
+			vim.keymap.set("n", "<space>b", dap.toggle_breakpoint)
+			vim.keymap.set("n", "<space>gb", dap.run_to_cursor)
 			vim.keymap.set("n", "<F1>", dap.continue)
 			vim.keymap.set("n", "<F2>", dap.step_into)
 			vim.keymap.set("n", "<F3>", dap.step_over)
