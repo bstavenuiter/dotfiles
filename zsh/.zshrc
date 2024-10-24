@@ -8,7 +8,7 @@ export DYLD_LIBRARY_PATH=/usr/local/opt/openssl/lib:$DYLD_LIBRARY_PATH
 export BAT_THEME=OneHalfLight
 export BAT_THEME=ansi-dark
 export HISTCONTROL=ignorespace
-export NVM_DIR="$HOME/.nvm"
+#export NVM_DIR="$HOME/.nvm"
 export USE_GKE_GCLOUD_AUTH_PLUGIN=True
 
 export PATH=$HOME/.config/bin:~/.config/phpmon/bin:$PATH
