@@ -1,3 +1,10 @@
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
 NPM_PACKAGES="$HOME/.npm-packages"
 
 # Path to your oh-my-zsh installation.
@@ -94,7 +101,7 @@ ZSH_THEME="gnzh"
 #plugins=(git docker docker-compose)
 plugins=( 
     # other plugins...
-    zsh-autosuggestions kubectl zoxide
+    kubectl zoxide
 )
 
 # User configuration
@@ -104,6 +111,9 @@ export PATH=$NPM_PACKAGES/bin:$PATH:/Applications/MySQLWorkbench.app/Contents/Ma
 
 source $ZSH/oh-my-zsh.sh
 source $HOME/.oh-my-zsh/custom/plugins/zsh-abbr/zsh-abbr.zsh
+source $HOME/.oh-my-zsh/custom/plugins/zsh-fzf-history-search/zsh-fzf-history-search.zsh
+source $HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+source $HOME/.zsh/themes/powerlevel10k/powerlevel10k.zsh-theme
  
 #export NVM_DIR=~/.nvm
 #source $(brew --prefix nvm)/nvm.sh
@@ -193,8 +203,6 @@ bindkey '^p' history-beginning-search-forward
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-source /Users/b.stavenuiter/.docker/init-zsh.sh || true # Added by Docker Desktop
-
 # The next line updates PATH for the Google Cloud SDK.
 if [ -f '/Users/b.stavenuiter/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/b.stavenuiter/google-cloud-sdk/path.zsh.inc'; fi
 
@@ -218,3 +226,6 @@ if [ $commands[kubectl] ]; then
     $0 "$@"
   }
 fi
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
