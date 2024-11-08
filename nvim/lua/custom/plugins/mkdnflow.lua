@@ -1,21 +1,24 @@
 -- note taking
-return
-{
-	'jakewvincent/mkdnflow.nvim',
+return {
+	"jakewvincent/mkdnflow.nvim",
 
 	opts = {
-		rocks = 'luautf8', -- Ensures optional luautf8 dependency is installed
+		rocks = "luautf8", -- Ensures optional luautf8 dependency is installed
 	},
 
 	config = function()
-
 		local opts = { noremap = true, silent = true }
 		local keymap = vim.api.nvim_set_keymap
-		keymap("n", "<leader>zf", ':lua require("telescope.builtin").find_files({cwd = "~/leadsio/notes/zettelkasten/", hidden=true, layout_config={prompt_position="top"}})<CR>', opts)
+		keymap(
+			"n",
+			"<leader>zf",
+			':lua require("telescope.builtin").find_files({cwd = "~/leadsio/notes/zettelkasten/", hidden=true, layout_config={prompt_position="top"}})<CR>',
+			opts
+		)
 
-		require('mkdnflow').setup({
+		require("mkdnflow").setup({
 			mappings = {
-				MkdnEnter = { { 'i', 'n', 'v' }, '<CR>' } -- This monolithic command has the aforementioned
+				MkdnEnter = { { "i", "n", "v" }, "<CR>" }, -- This monolithic command has the aforementioned
 				-- insert-mode-specific behavior and also will trigger row jumping in tables. Outside
 				-- of lists and tables, it behaves as <CR> normally does.
 				-- MkdnNewListItem = {'i', '<CR>'} -- Use this command instead if you only want <CR> in
@@ -26,9 +29,9 @@ return
 				placeholders = {
 					before = {
 						title = "link_title",
-						date = "os_date"
+						date = "os_date",
 					},
-					after = {}
+					after = {},
 				},
 				template = [[title: {{ title }}
 date: {{ date }}
@@ -38,8 +41,8 @@ documentation:
 ---
  
 ## Action points
-]]
+]],
 			},
 		})
-	end
+	end,
 }
