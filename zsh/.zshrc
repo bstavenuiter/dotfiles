@@ -108,7 +108,8 @@ plugins=(
 export PATH=$NPM_PACKAGES/bin:$PATH:/Applications/MySQLWorkbench.app/Contents/MacOS:$HOME/.composer/vendor/bin
 
 #export VIMRUNTIME="/Applications/MacVim.app/Contents/Resources/vim/runtime"
-
+#disable auto update for oh-my-zsh
+DISABLE_AUTO_UPDATE=true
 source $ZSH/oh-my-zsh.sh
 source $HOME/.oh-my-zsh/custom/plugins/zsh-abbr/zsh-abbr.zsh
 source $HOME/.oh-my-zsh/custom/plugins/zsh-fzf-history-search/zsh-fzf-history-search.zsh
