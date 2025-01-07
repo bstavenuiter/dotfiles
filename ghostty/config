@@ -1,0 +1,16 @@
+font-size = 16
+font-family = "FiraCode Nerd Font"
+
+font-feature = -calt
+font-feature = -liga
+font-feature = -dlig
+
+adjust-cell-height = 30%
+
+#theme = OneHalfDark
+
+background = 1e1e2e
+foreground = cdd6f4
+cursor-color = f5e0dc
+selection-background = 353749
+selection-foreground = cdd6f4
