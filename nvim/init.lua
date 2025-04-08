@@ -70,7 +70,11 @@ vim.opt.softtabstop = 4
 vim.opt.swapfile = false
 vim.opt.expandtab = true
 
-
+-- Copying
+vim.keymap.set('n', '<leader>yp', function() vim.fn.setreg('+', vim.fn.expand('%:p:.')) end, {desc = 'Copy file path' })
+vim.keymap.set('n', '<leader>yd', function() vim.fn.setreg('+', vim.fn.expand('%:h')) end, {desc = 'Copy directory path' })
+vim.keymap.set('n', '<leader>yf', function() vim.fn.setreg('+', vim.fn.expand('%:t:r')) end, {desc = 'Copy file name' })
+--
 -- Minimal number of screen lines to keep above and below the cursor.
 vim.opt.scrolloff = 10
 --
