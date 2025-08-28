@@ -2,6 +2,7 @@ return {
 	{
 		"nvim-treesitter/nvim-treesitter",
 		build = ":TSUpdate",
+        branch = "main",
 		dependencies = {"nvim-treesitter/nvim-treesitter-context"},
 		config = function()
 			require 'nvim-treesitter.configs'.setup {
