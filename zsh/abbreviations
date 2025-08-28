@@ -20,6 +20,7 @@ abbr "kn"="kubectl config set-context \$(kubectl config current-context) --names
 abbr "kp"="kubectl get pods -n"
 abbr "kpa"="kubectl get pods -A"
 abbr "kuc"="kubectl config use-context"
+abbr "kx"="kubectx"
 abbr "lg"="lazygit"
 abbr "lltr"="ll -tr"
 abbr "nn"="nvim"
