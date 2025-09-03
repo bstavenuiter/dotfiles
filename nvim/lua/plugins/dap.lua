@@ -10,7 +10,7 @@ return {
 			local dap = require("dap")
 			local ui = require("dapui")
 
-			require("dapui").setup()
+			ui.setup()
 
 			require("nvim-dap-virtual-text").setup()
 
