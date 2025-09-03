@@ -231,6 +231,10 @@ if.app-id = 'com.brave.Browser'
 run = 'move-node-to-workspace 1'
 
 [[on-window-detected]]
+if.app-id = 'com.mitchellh.ghostty'
+run = 'move-node-to-workspace 2'
+
+[[on-window-detected]]
 if.app-id = 'org.alacritty'
 run = 'move-node-to-workspace 2'
 
@@ -250,9 +254,6 @@ run = 'move-node-to-workspace 4'
 if.app-id = 'com.google.Chrome'
 run = 'move-node-to-workspace 6'
 
-[[on-window-detected]]
-if.app-id = 'com.mitchellh.ghostty'
-run = 'move-node-to-workspace 2'
 
 
 ## Floating applications
