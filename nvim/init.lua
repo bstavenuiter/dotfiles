@@ -128,3 +128,17 @@ vim.cmd([[
 
   autocmd FileType gitcommit setlocal spell
 ]])
+
+-- php-tinker
+local opts = { noremap = true, silent = true }
+
+-- For NORMAL mode: yanks the line FIRST with `yy`
+vim.keymap.set('n', '<leader>tis', 'yy<Cmd>lua require("php-tinker").send()<CR>', opts)
+-- For VISUAL mode: yanks the selection FIRST with `y`
+vim.keymap.set('v', '<leader>tis', 'y<Cmd>lua require("php-tinker").send()<CR>', opts)
+-- send the entire file to the tinker session window
+vim.keymap.set('n', '<leader>til', function() require("php-tinker").send_file() end, { desc = 'Send File to Tinker' })
+-- renew the tinker session window
+vim.keymap.set('n', '<leader>tir', function() require("php-tinker").renew_tinker_session() end, { desc = 'Renew the tinker session' })
+-- close the session window
+vim.keymap.set('n', '<leader>tic', function() require("php-tinker").close_split() end, { desc = 'Close the tinker session' })

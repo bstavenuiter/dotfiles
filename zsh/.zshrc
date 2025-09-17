@@ -1,3 +1,19 @@
+# Path to your oh-my-zsh installation.
+export ZSH=$HOME/.oh-my-zsh
+export BREW_HOME=$(brew --prefix)
+export PATH=$PATH:$HOME/.local/bin:$HOME/Library/Python/2.7/bin:$HOME/.cargo/bin
+export DOLLAR=$
+export DYLD_LIBRARY_PATH=/usr/local/opt/openssl/lib:$DYLD_LIBRARY_PATH
+export HISTCONTROL=ignorespace
+export USE_GKE_GCLOUD_AUTH_PLUGIN=True
+
+export PATH=$HOME/.config/bin:$PATH
+alias python3=/opt/homebrew/bin/python3
+
+## ENVS, the more private ones
+source ~/.zsh_env_vars
+
+eval "$(fnm env --use-on-cd)"
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
@@ -5,20 +21,13 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
-NPM_PACKAGES="$HOME/.npm-packages"
+HISTFILESIZE=10000000
+HISTFILE="$HOME/.zsh_history"
+HISTSIZE=10000000
+export SAVEHIST=$HISTSIZE
+setopt SHARE_HISTORY #share history across all sessions
+setopt HIST_IGNORE_ALL_DUPS #ignore duplicate commands like ls -latr
 
-# Path to your oh-my-zsh installation.
-export ZSH=$HOME/.oh-my-zsh
-export PATH=$PATH:$HOME/.local/bin:$HOME/Library/Python/2.7/bin:$HOME/Applications/Opera.app/Contents/MacOS/
-export DOLLAR=$
-export DYLD_LIBRARY_PATH=/usr/local/opt/openssl/lib:$DYLD_LIBRARY_PATH
-export BAT_THEME=OneHalfLight
-export BAT_THEME=ansi-dark
-export HISTCONTROL=ignorespace
-#export NVM_DIR="$HOME/.nvm"
-export USE_GKE_GCLOUD_AUTH_PLUGIN=True
-
-export PATH=$HOME/.config/bin:~/.config/phpmon/bin:$PATH
 
 _has() {
       return $( whence $1 >/dev/null )
@@ -44,17 +53,16 @@ _force_prepend_to_path() {
     path=($1 ${(@)path:#$1})
 }
 
-eval "$(fnm env --use-on-cd)"
 
 ## install zoxide #######
-eval "$(zoxide init zsh)"
+## eval "$(zoxide init zsh)"
 ########################
 
 # Set name of the theme to load.
 # Look in ~/.oh-my-zsh/themes/
 # Optionally, if you set this to "random", it'll load a random theme each
 # time that oh-my-zsh is loaded.
-ZSH_THEME="gnzh"
+#ZSH_THEME="gnzh"
 
 # Uncomment the following line to use case-sensitive completion.
 # CASE_SENSITIVE="true"
@@ -101,20 +109,23 @@ ZSH_THEME="gnzh"
 #plugins=(git docker docker-compose)
 plugins=( 
     # other plugins...
-    kubectl zoxide
+    kubectl
 )
 
+
 # User configuration
-export PATH=$NPM_PACKAGES/bin:$PATH:/Applications/MySQLWorkbench.app/Contents/MacOS:$HOME/.composer/vendor/bin
+export PATH=$PATH:/Applications/MySQLWorkbench.app/Contents/MacOS:$HOME/.composer/vendor/bin
 
 #export VIMRUNTIME="/Applications/MacVim.app/Contents/Resources/vim/runtime"
 #disable auto update for oh-my-zsh
 DISABLE_AUTO_UPDATE=true
 source $ZSH/oh-my-zsh.sh
 source $HOME/.oh-my-zsh/custom/plugins/zsh-abbr/zsh-abbr.zsh
-source $HOME/.oh-my-zsh/custom/plugins/zsh-fzf-history-search/zsh-fzf-history-search.zsh
-source $HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+#source $HOME/.oh-my-zsh/custom/plugins/zsh-fzf-history-search/zsh-fzf-history-search.zsh
+source $BREW_HOME/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 source $HOME/.zsh/themes/powerlevel10k/powerlevel10k.zsh-theme
+#
+##
  
 #export NVM_DIR=~/.nvm
 #source $(brew --prefix nvm)/nvm.sh
@@ -188,12 +199,6 @@ fi
 bindkey "∫" backward-word
 bindkey "ƒ" forward-word
 # 
-timezsh() {
-  shell=${1-$SHELL}
-  for i in $(seq 1 10); do /usr/bin/time $shell -i -c exit; done
-}
-
-cdl() { cd $(lct path $1) }
 
 bindkey '^ ' autosuggest-accept
 bindkey '^y' autosuggest-accept
@@ -201,6 +206,7 @@ bindkey '^n' history-beginning-search-backward
 bindkey '^p' history-beginning-search-forward
 #[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
+source <(fzf --zsh)
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
@@ -230,3 +236,6 @@ fi
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+autoload -U +X bashcompinit && bashcompinit
+complete -o nospace -C /opt/homebrew/bin/terraform terraform
