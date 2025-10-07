@@ -10,6 +10,8 @@ return {
 
             ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'php' },
 
+            indent = { enable = true },
+
             highlight = {
                 enable = true,
 
