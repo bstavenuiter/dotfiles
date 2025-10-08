@@ -2,9 +2,10 @@ return {
 	{
 		"nvim-telescope/telescope.nvim",
 
-		tag = "0.1.8",
+        tag = "0.1.8",
 
-		dependencies = { "nvim-lua/plenary.nvim",
+		dependencies = {
+            "nvim-lua/plenary.nvim",
             {
                 "nvim-telescope/telescope-fzf-native.nvim", build = "make"
             },
@@ -33,8 +34,6 @@ return {
 
 			require('telescope').load_extension('fzf')
 			require('telescope').load_extension('git_branch')
-            require("telescope").load_extension("undo")
-
 
 			local builtin = require("telescope.builtin")
 			vim.keymap.set("n", "<leader>sh", builtin.help_tags, { desc = "[S]earch [H]elp" })

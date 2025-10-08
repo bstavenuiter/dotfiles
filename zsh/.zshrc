@@ -120,7 +120,7 @@ export PATH=$PATH:/Applications/MySQLWorkbench.app/Contents/MacOS:$HOME/.compose
 #disable auto update for oh-my-zsh
 DISABLE_AUTO_UPDATE=true
 source $ZSH/oh-my-zsh.sh
-source $HOME/.oh-my-zsh/custom/plugins/zsh-abbr/zsh-abbr.zsh
+source /opt/homebrew/share/zsh-abbr/zsh-abbr.zsh
 #source $HOME/.oh-my-zsh/custom/plugins/zsh-fzf-history-search/zsh-fzf-history-search.zsh
 source $BREW_HOME/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 source $HOME/.zsh/themes/powerlevel10k/powerlevel10k.zsh-theme
