@@ -33,14 +33,14 @@ return {
 						},
 						after = {},
 					},
-					template = [[title: {{ title }}
-date: {{ date }}
-participants:
-documentation:
+					template = [[title: {{ title }}\
+date: {{ date }}\
+participants:\
+documentation:\
  
 ---
  
-## Action points
+### Action points
 ]],
 				},
 			})

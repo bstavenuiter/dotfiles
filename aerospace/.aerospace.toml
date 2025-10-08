@@ -166,8 +166,11 @@ alt-ctrl-5 = 'move-node-to-workspace 5'
 alt-shift-6 = 'move-node-to-workspace 6'
 alt-ctrl-6 = 'move-node-to-workspace 6'
 alt-shift-7 = 'move-node-to-workspace 7'
+alt-ctrl-7 = 'move-node-to-workspace 7'
 alt-shift-8 = 'move-node-to-workspace 8'
+alt-ctrl-8 = 'move-node-to-workspace 8'
 alt-shift-9 = 'move-node-to-workspace 9'
+alt-ctrl-9 = 'move-node-to-workspace 9'
 alt-shift-0 = 'move-node-to-workspace 10'
 alt-ctrl-0 = 'move-node-to-workspace 10'
 alt-shift-a = 'move-node-to-workspace A'
@@ -228,6 +231,10 @@ if.app-id = 'com.brave.Browser'
 run = 'move-node-to-workspace 1'
 
 [[on-window-detected]]
+if.app-id = 'com.mitchellh.ghostty'
+run = 'move-node-to-workspace 2'
+
+[[on-window-detected]]
 if.app-id = 'org.alacritty'
 run = 'move-node-to-workspace 2'
 
@@ -247,9 +254,6 @@ run = 'move-node-to-workspace 4'
 if.app-id = 'com.google.Chrome'
 run = 'move-node-to-workspace 6'
 
-[[on-window-detected]]
-if.app-id = 'com.mitchellh.ghostty'
-run = 'move-node-to-workspace 2'
 
 
 ## Floating applications
