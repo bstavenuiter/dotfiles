@@ -9,6 +9,6 @@ adjust-cell-height = 30%
 foreground = dcdfe4
 background = 292727
 
-quick-terminal-size = 80%
+quick-terminal-size = 75%,75%
 
 keybind = global:cmd+backquote=toggle_quick_terminal
