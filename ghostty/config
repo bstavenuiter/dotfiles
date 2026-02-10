@@ -9,6 +9,11 @@ adjust-cell-height = 30%
 foreground = dcdfe4
 background = 292727
 
-quick-terminal-size = 75%,75%
+quick-terminal-size = 75%,80%
+quick-terminal-position = center
+quick-terminal-animation-duration = 0
 
 keybind = global:cmd+backquote=toggle_quick_terminal
+
+# no close window notification anymore, this was blocking restarts etc.
+confirm-close-surface = false
