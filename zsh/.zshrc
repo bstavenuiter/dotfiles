@@ -7,8 +7,11 @@ export DYLD_LIBRARY_PATH=/usr/local/opt/openssl/lib:$DYLD_LIBRARY_PATH
 export HISTCONTROL=ignorespace
 export USE_GKE_GCLOUD_AUTH_PLUGIN=True
 export TMPDIR=/tmp
+export HOMEBREW_NO_AUTO_UPDATE=1
 
-export PATH=$HOME/.config/bin:$PATH
+
+# For Mac OS
+export PATH=$HOME/.config/bin:$HOME/go/bin:$PATH
 alias python3=/opt/homebrew/bin/python3
 
 ## ENVS, the more private ones
