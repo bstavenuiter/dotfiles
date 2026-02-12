@@ -4,9 +4,13 @@ return {
 		-- optional: provides snippets for the snippet source
 		dependencies = "rafamadriz/friendly-snippets",
 
-		version = "*",
+        version = '1.*',
 
 		opts = {
+            -- (Default) Only show the documentation popup when manually triggered
+            completion = { documentation = { auto_show = false } },
+
+            fuzzy = { implementation = "lua" },
 
 			-- { 'lsp', 'path', 'snippets', 'buffer' },
 			sources = {
