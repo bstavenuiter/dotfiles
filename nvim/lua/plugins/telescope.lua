@@ -29,7 +29,8 @@ return {
 					},
 				},
 				extensions = {
-					fzf = {}
+					fzf = {},
+                    undo = {},
 				}
 			}
 
