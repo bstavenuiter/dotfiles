@@ -92,6 +92,10 @@ vim.keymap.set("n", "<C-l>", "<C-w><C-l>", { desc = "Move focus to the right win
 vim.keymap.set("n", "<C-j>", "<C-w><C-j>", { desc = "Move focus to the lower window" })
 vim.keymap.set("n", "<C-k>", "<C-w><C-k>", { desc = "Move focus to the upper window" })
 
+-- Resize window using <Ctrl> + <Alt> key + h/l
+vim.keymap.set("n", "<C-A-h>", "<cmd>vertical resize -5<cr>", { desc = "Decrease window width" })
+vim.keymap.set("n", "<C-A-l>", "<cmd>vertical resize +5<cr>", { desc = "Increase window width" })
+
 -- open current file in Browser
 vim.keymap.set("n", "<leader>bo", '<cmd>silent !open -a "Brave Browser" "%:p"<CR>')
 --
