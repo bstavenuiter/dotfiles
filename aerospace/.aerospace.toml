@@ -64,8 +64,18 @@ outer.top =        0
 outer.right =      0
 
 [workspace-to-monitor-force-assignment]
-# 10 = 'secondary'                  # Non-main monitor in case when there are only two monitors
-10 = 2  # Case insensitive regex match
+# Pin monitors by NAME, not positional index — a numeric index (e.g. 2)
+# shifts when the monitor arrangement changes after an update/reconnect.
+# 1-8 live on the extended display; 10 is the built-in Mac display.
+1 = 'P24h-10'
+2 = 'P24h-10'
+3 = 'P24h-10'
+4 = 'P24h-10'
+5 = 'P24h-10'
+6 = 'P24h-10'
+7 = 'P24h-10'
+8 = 'P24h-10'
+10 = 'built-in'
 
 
 # 'main' binding mode declaration
