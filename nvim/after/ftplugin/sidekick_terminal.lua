@@ -1,0 +1,5 @@
+vim.keymap.set("t", "<c-[>", "<Esc>", { buffer = 0, desc = "Pass ESC to Claude" })
+vim.keymap.set({"n", "i"}, "<C-h>", "<C-w><C-h>", { buffer = 0, desc = "Move focus to the left window" })
+vim.keymap.set({"n", "i"}, "<C-l>", "<C-w><C-l>", { buffer = 0, desc = "Move focus to the right window" })
+vim.keymap.set({"n", "i"}, "<C-j>", "<C-w><C-j>", { buffer = 0, desc = "Move focus to the lower window" })
+vim.keymap.set({"n", "i"}, "<C-k>", "<C-w><C-k>", { buffer = 0, desc = "Move focus to the upper window" })
