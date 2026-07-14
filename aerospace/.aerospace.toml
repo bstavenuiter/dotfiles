@@ -1,6 +1,7 @@
 # Place a copy of this config to ~/.aerospace.toml
 # After that, you can edit ~/.aerospace.toml to your liking
 
+config-version = 2
 # You can use it to add commands that run after login to macOS user session.
 # 'start-at-login' needs to be 'true' for 'after-login-command' to work
 # Available commands: https://nikitabobko.github.io/AeroSpace/commands
@@ -121,8 +122,9 @@ alt-l = 'focus right'
 # See: https://nikitabobko.github.io/AeroSpace/commands#move
 alt-shift-h = 'move left'
 alt-shift-j = 'move down'
-alt-shift-k = 'move up'
+# alt-shift-k = 'move up'
 alt-shift-l = 'move right'
+alt-shift-k = 'focus-monitor next --wrap-around'
 
 # See: https://nikitabobko.github.io/AeroSpace/commands#resize
 alt-shift-minus = 'resize smart -100'
@@ -213,6 +215,11 @@ alt-tab = 'workspace-back-and-forth'
 # See: https://nikitabobko.github.io/AeroSpace/commands#move-workspace-to-monitor
 alt-shift-tab = 'move-workspace-to-monitor --wrap-around next'
 
+# Jump to the tmux pane of the most recent cw notification (mirrors clicking
+# the banner). Routed through cw-url-handler.app so System Events permission
+# is inherited from the bundle, not requested per-foreground-app.
+cmd-shift-y = '''exec-and-forget bash -c 'p=$(cat ~/.config/cw/last-notified 2>/dev/null) && [ -n "$p" ] && open "cw://jump/$p"' '''
+
 # See: https://nikitabobko.github.io/AeroSpace/commands#mode
 alt-shift-semicolon = 'mode service'
 
@@ -229,16 +236,20 @@ alt-shift-space = 'layout floating tiling' # 'floating toggle' in i3
 # sticky is not yet supported https://github.com/nikitabobko/AeroSpace/issues/2
 #s = ['layout sticky tiling', 'mode main']
 
-alt-shift-h = ['join-with left', 'mode main']
-alt-shift-j = ['join-with down', 'mode main']
-alt-shift-k = ['join-with up', 'mode main']
-alt-shift-l = ['join-with right', 'mode main']
+#alt-shift-h = ['join-with left', 'mode main']
+#alt-shift-j = ['join-with down', 'mode main']
+# alt-shift-k = ['join-with up', 'mode main']
+# alt-shift-l = ['join-with right', 'mode main']
 
 
 ## List windows with: aerospace list-apps
 [[on-window-detected]]
-if.app-id = 'com.brave.Browser'
+if.app-id = 'net.imput.helium'
 run = 'move-node-to-workspace 1'
+
+[[on-window-detected]]
+if.app-id = 'com.brave.Browser'
+run = 'move-node-to-workspace 5'
 
 [[on-window-detected]]
 if.app-id = 'com.mitchellh.ghostty'
@@ -250,10 +261,11 @@ run = 'move-node-to-workspace 2'
 
 [[on-window-detected]]
 if.app-id = 'com.tinyspeck.slackmacgap'
-run = 'move-node-to-workspace 3'
+if.window-title-regex-substring = 'Huddle:'
+run = 'move-node-to-workspace 7'
 
 [[on-window-detected]]
-if.app-id = 'workplace-desktop'
+if.app-id = 'com.tinyspeck.slackmacgap'
 run = 'move-node-to-workspace 3'
 
 [[on-window-detected]]
@@ -281,6 +293,10 @@ if.app-id = 'com.tinyapp.DBngin'
 run = ['layout floating']
 
 [[on-window-detected]]
+if.app-id = 'com.pais.handy'
+run = ['layout floating']
+
+[[on-window-detected]]
 if.app-id = 'com.imagestudiopro.ScreenBrush'
 run = ['layout floating']
 
@@ -296,4 +312,6 @@ run = ['layout floating']
 if.app-id = 'com.apple.ActivityMonitor'
 run = ['layout floating']
 
-
+[[on-window-detected]]
+if.app-id = 'io.github.keycastr'
+run = ['layout floating']
