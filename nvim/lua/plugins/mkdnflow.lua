@@ -15,7 +15,7 @@ return {
 			keymap(
 				"n",
 				"<leader>zf",
-				':lua require("telescope.builtin").find_files({cwd = "~/leadsio/notes/zettelkasten/", hidden=true, layout_config={prompt_position="top"}})<CR>',
+				':lua require("telescope.builtin").find_files({cwd = vim.env.ZETTELKASTEN, hidden=true, layout_config={prompt_position="top"}})<CR>',
 				opts
 			)
 
