@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# wt — open a git worktree in a dedicated tmux window running neovim with the
+# sidekick Claude split (and `npm run dev` when the project defines one).
+#
+# Scope is the repo containing the current directory: git walks up parents, so
+# the picker only ever shows worktrees of the codebase you're in.
+#
+#   session = first path segment under ~/code  (sherlock-laravel/main -> sherlock-laravel)
+#   window  = worktree leaf name, trailing .sherlock stripped (shr-3534.sherlock -> shr-3534)
+#
+# Launched from a tmux popup bound to prefix + C-w (see .tmux.conf). Accepts an
+# optional substring to jump straight to a worktree: `wt shr-3534`.
+
+start_dir="${PWD}"
+
+# All worktrees of the current repo, minus the bare entry, paths only.
+# (read loop rather than mapfile — macOS ships bash 3.2.)
+worktrees=()
+while IFS= read -r worktree_line; do
+    [[ -n "$worktree_line" ]] && worktrees+=("$worktree_line")
+done < <(git -C "$start_dir" worktree list 2>/dev/null | grep -v ' (bare)$' | awk '{print $1}')
+
+if [[ ${#worktrees[@]} -eq 0 ]]; then
+    echo "wt: not inside a git repository (no worktrees found)."
+    read -r -s -n 1 -p "(press any key)" </dev/tty 2>/dev/null || true
+    exit 0
+fi
+
+selected=""
+if [[ $# -ge 1 ]]; then
+    matches=()
+    for worktree in "${worktrees[@]}"; do
+        [[ "$worktree" == *"$1"* ]] && matches+=("$worktree")
+    done
+    if [[ ${#matches[@]} -eq 1 ]]; then
+        selected="${matches[0]}"
+    elif [[ ${#matches[@]} -gt 1 ]]; then
+        selected=$(printf '%s\n' "${matches[@]}" | fzf --prompt="worktree> ") || exit 0
+    else
+        echo "wt: no worktree matches '$1'."
+        read -r -s -n 1 -p "(press any key)" </dev/tty 2>/dev/null || true
+        exit 0
+    fi
+elif [[ ${#worktrees[@]} -eq 1 ]]; then
+    selected="${worktrees[0]}"
+else
+    # Show path + branch for context; keep just the path.
+    selected=$(git -C "$start_dir" worktree list | grep -v ' (bare)$' | fzf --prompt="worktree> " | awk '{print $1}') || exit 0
+fi
+
+[[ -z "$selected" ]] && exit 0
+
+# session = first path segment under ~/code (fallback: the leaf basename).
+rel="${selected#"$HOME"/code/}"
+if [[ "$rel" != "$selected" ]]; then
+    session="${rel%%/*}"
+    session_root="$HOME/code/$session"
+else
+    session="$(basename "$selected")"
+    session_root="$selected"
+fi
+session="${session//./_}"
+[[ -d "$session_root" ]] || session_root="$selected"
+
+# window = leaf name without a trailing .sherlock
+window="$(basename "$selected")"
+window="${window%.sherlock}"
+
+# Ensure the codebase session exists.
+if ! tmux has-session -t "=$session" 2>/dev/null; then
+    tmux new-session -d -s "$session" -c "$session_root"
+fi
+
+# Reuse an existing window for this worktree; otherwise build the workspace.
+if tmux list-windows -t "=$session" -F '#{window_name}' 2>/dev/null | grep -qx "$window"; then
+    tmux select-window -t "=$session:$window"
+else
+    tmux new-window -t "=$session" -n "$window" -c "$selected" \
+        "nvim \"+lua require('wt').start()\""
+fi
+
+# Focus it.
+if [[ -n "${TMUX:-}" ]]; then
+    tmux switch-client -t "=$session:$window"
+else
+    tmux attach-session -t "=$session:$window"
+fi
