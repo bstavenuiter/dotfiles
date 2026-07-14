@@ -4,6 +4,56 @@ local tinker_bufnr = nil
 local tinker_command = 'php artisan tinker'
 local split_command = 'botright split'
 
+---Sends text to the tinker terminal, prefixing every line with a space.
+---PsySH's readline deterministically drops the first byte of the input line
+---that follows a multi-line result (e.g. the `$` of `$builder` right after a
+---`= [...]` array). The leading space absorbs that dropped byte; when no byte
+---is dropped, leading whitespace is insignificant in PHP anyway.
+---@param chan_id number
+---@param text string
+local function paste_to_terminal(chan_id, text)
+    local guarded = " " .. text:gsub("\n", "\n ")
+    vim.api.nvim_chan_send(chan_id, guarded .. "\r")
+end
+
+---True once PsySH has booted: its banner has printed and the last non-empty
+---line is a `>` prompt (i.e. it is ready to accept input).
+---@param bufnr number
+---@return boolean
+local function tinker_is_ready(bufnr)
+    local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+
+    local seen_banner = false
+    for _, line in ipairs(lines) do
+        if line:find("Psy Shell", 1, true) then
+            seen_banner = true
+            break
+        end
+    end
+    if not seen_banner then
+        return false
+    end
+
+    -- Ready only once the last non-empty line is the prompt.
+    for i = #lines, 1, -1 do
+        if lines[i]:match("%S") then
+            return lines[i]:match("^%s*>") ~= nil
+        end
+    end
+    return false
+end
+
+---Blocks (pumping the event loop) until tinker is ready or the timeout is hit.
+---@param bufnr number
+local function wait_for_tinker(bufnr)
+    local ready = vim.wait(5000, function()
+        return tinker_is_ready(bufnr)
+    end, 50)
+    if not ready then
+        vim.notify("Tinker did not become ready in time; sending anyway.", vim.log.levels.WARN)
+    end
+end
+
 ---Finds an existing tinker terminal or creates a new one.
 ---@return number|nil, number|nil
 local function get_tinker_chan_and_win()
@@ -29,9 +79,6 @@ local function get_tinker_chan_and_win()
         return nil, nil
     end
 
-    vim.notify("Starting new tinker session...", vim.log.levels.INFO)
-    -- Wait a bit for tinker to initialize
-    vim.cmd('sleep 200m')
     return new_chan_id, vim.fn.bufwinid(tinker_bufnr)
 end
 
@@ -51,7 +98,7 @@ function M.send()
         return
     end
 
-    vim.api.nvim_chan_send(chan_id, yanked_text .. "\n")
+    paste_to_terminal(chan_id, yanked_text)
     vim.notify("Sent yanked text to tinker terminal", vim.log.levels.INFO)
 
     vim.api.nvim_win_call(win_id, function()
@@ -72,7 +119,7 @@ function M.send_file()
     content = content:gsub("/%*.-%*/", "")
     -- Remove single line comments
     local clean_lines = {}
-    for line in content:gmatch("([^ ]*)") do
+    for line in (content .. "\n"):gmatch("([^\n]*)\n") do
         if not line:match("^%s*//") and not line:match("^%s*#") then
             table.insert(clean_lines, line)
         end
@@ -90,7 +137,7 @@ function M.send_file()
         return
     end
 
-    vim.api.nvim_chan_send(chan_id, content .. "\n")
+    paste_to_terminal(chan_id, content)
     vim.notify("Sent file content to tinker terminal", vim.log.levels.INFO)
 
     vim.api.nvim_win_call(win_id, function()
@@ -127,6 +174,10 @@ function M.create_split()
     end
 
     tinker_bufnr = vim.api.nvim_get_current_buf()
+
+    vim.notify("Starting new tinker session...", vim.log.levels.INFO)
+    wait_for_tinker(tinker_bufnr)
+
     vim.cmd('normal! G')
     vim.cmd('wincmd p')
     return tinker_bufnr
