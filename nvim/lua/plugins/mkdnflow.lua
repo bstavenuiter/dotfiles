@@ -7,6 +7,9 @@ return {
 		},
 
 		config = function()
+            -- require the calendar module which contains the CalendarToday command
+			require("calendar").setup()
+
 			local opts = { noremap = true, silent = true }
 			local keymap = vim.api.nvim_set_keymap
 			keymap(
@@ -23,15 +26,17 @@ return {
 					-- of lists and tables, it behaves as <CR> normally does.
 					-- MkdnNewListItem = {'i', '<CR>'} -- Use this command instead if you only want <CR> in
 					-- insert mode to add a new list item (and behave as usual outside of lists).
+					MkdnUpdateNumbering = false, -- frees <leader>nn for Neotree
+					MkdnSortToDoList = { "n", "<leader>ts" },
 				},
 				new_file_template = {
 					use_template = true,
 					placeholders = {
-						before = {
+						-- before = {
 							title = "link_title",
 							date = "os_date",
-						},
-						after = {},
+						-- },
+						-- after = {},
 					},
 					template = [[title: {{ title }}\
 date: {{ date }}\
