@@ -87,17 +87,35 @@ vim.keymap.set("x", "<C-j>", ":m '>+1<cr>gv=gv", { desc = "Move selected text do
 vim.keymap.set("x", "<C-k>", ":m '<-2<cr>gv=gv", { desc = "Move selected text up"})
 
 -- quick keys to move to another window the vim way
-vim.keymap.set("n", "<C-h>", "<C-w><C-h>", { desc = "Move focus to the left window" })
-vim.keymap.set("n", "<C-l>", "<C-w><C-l>", { desc = "Move focus to the right window" })
-vim.keymap.set("n", "<C-j>", "<C-w><C-j>", { desc = "Move focus to the lower window" })
-vim.keymap.set("n", "<C-k>", "<C-w><C-k>", { desc = "Move focus to the upper window" })
+vim.keymap.set({"n","t"}, "<C-h>", "<C-w><C-h>", { desc = "Move focus to the left window" })
+vim.keymap.set({"n","t"}, "<C-l>", "<C-w><C-l>", { desc = "Move focus to the right window" })
+vim.keymap.set({"n","t"}, "<C-j>", "<C-w><C-j>", { desc = "Move focus to the lower window" })
+vim.keymap.set({"n","t"}, "<C-k>", "<C-w><C-k>", { desc = "Move focus to the upper window" })
 
 -- Resize window using <Ctrl> + <Alt> key + h/l
-vim.keymap.set("n", "<C-A-h>", "<cmd>vertical resize -5<cr>", { desc = "Decrease window width" })
-vim.keymap.set("n", "<C-A-l>", "<cmd>vertical resize +5<cr>", { desc = "Increase window width" })
+vim.keymap.set({"n", "t"}, "<C-A-h>", "<cmd>vertical resize -5<cr>", { desc = "Decrease window width" })
+vim.keymap.set({"n", "t"}, "<C-A-l>", "<cmd>vertical resize +5<cr>", { desc = "Increase window width" })
 
 -- open current file in Browser
 vim.keymap.set("n", "<leader>bo", '<cmd>silent !open -a "Brave Browser" "%:p"<CR>')
+
+-- open the current Laravel app URL (APP_URL from .env) in the default browser
+vim.keymap.set("n", "<leader>ba", function()
+  local env = vim.fs.find(".env", { upward = true, path = vim.fn.expand("%:p:h") })[1]
+  if not env then
+    vim.notify("No .env found", vim.log.levels.WARN)
+    return
+  end
+  for line in io.lines(env) do
+    local url = line:match("^%s*APP_URL%s*=%s*(.+)%s*$")
+    if url then
+      url = url:gsub('^"(.*)"$', "%1"):gsub("^'(.*)'$", "%1")
+      vim.system({ "open", url })
+      return
+    end
+  end
+  vim.notify("APP_URL not found in .env", vim.log.levels.WARN)
+end, { desc = "Open Laravel app URL in browser" })
 --
 -- search jira
 vim.keymap.set("n", "<leader>js", ':JiraSearch ')
@@ -137,12 +155,19 @@ vim.cmd([[
 local opts = { noremap = true, silent = true }
 
 -- For NORMAL mode: yanks the line FIRST with `yy`
-vim.keymap.set('n', '<leader>tis', 'yy<Cmd>lua require("php-tinker").send()<CR>', opts)
+vim.keymap.set('n', '<leader>til', 'yy<Cmd>lua require("php-tinker").send()<CR>', opts)
 -- For VISUAL mode: yanks the selection FIRST with `y`
-vim.keymap.set('v', '<leader>tis', 'y<Cmd>lua require("php-tinker").send()<CR>', opts)
+vim.keymap.set('v', '<leader>til', 'y<Cmd>lua require("php-tinker").send()<CR>', opts)
 -- send the entire file to the tinker session window
-vim.keymap.set('n', '<leader>til', function() require("php-tinker").send_file() end, { desc = 'Send File to Tinker' })
+vim.keymap.set('n', '<leader>tif', function() require("php-tinker").send_file() end, { desc = 'Send File to Tinker' })
 -- renew the tinker session window
 vim.keymap.set('n', '<leader>tir', function() require("php-tinker").renew_tinker_session() end, { desc = 'Renew the tinker session' })
 -- close the session window
 vim.keymap.set('n', '<leader>tic', function() require("php-tinker").close_split() end, { desc = 'Close the tinker session' })
+
+vim.cmd.packadd("nvim.undotree")
+vim.cmd.packadd("nvim.difftool")
+
+
+-- 0.12 introduced 'fuzzy' to completeopt and a dedicated 'autocomplete' toggle.
+vim.opt.completeopt = { "menuone", "noselect", "fuzzy" }
