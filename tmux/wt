@@ -7,11 +7,11 @@ set -euo pipefail
 # Scope is the repo containing the current directory: git walks up parents, so
 # the picker only ever shows worktrees of the codebase you're in.
 #
-#   session = first path segment under ~/code  (sherlock-laravel/main -> sherlock-laravel)
-#   window  = worktree leaf name, trailing .sherlock stripped (shr-3534.sherlock -> shr-3534)
+#   session = first path segment under ~/code  (myproject/main -> myproject)
+#   window  = worktree leaf name, trailing .sherlock stripped (feat-123.sherlock -> feat-123)
 #
 # Launched from a tmux popup bound to prefix + C-w (see .tmux.conf). Accepts an
-# optional substring to jump straight to a worktree: `wt shr-3534`.
+# optional substring to jump straight to a worktree: `wt feat-123`.
 
 start_dir="${PWD}"
 

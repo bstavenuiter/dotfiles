@@ -15,7 +15,7 @@ return {
             { "<leader>glf", ":'<,'>GitlabFile<CR>", mode = "v", desc = "GitLab: open file (selection)" },
         },
         config = function(_, opts)
-            require("gitlab").setup({host = "gitlab.leadsio.dev"})
+            require("gitlab").setup({})
         end,
     }
 }
