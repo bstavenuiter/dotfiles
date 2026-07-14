@@ -14,10 +14,13 @@ return {
 
 			require("nvim-dap-virtual-text").setup()
 
+			-- php-debug is `npm link`ed globally from a local clone of
+			-- xdebug/vscode-php-debug (not on the npm registry, and it has no
+			-- build-on-install step, so we link the pre-built clone instead).
 			dap.adapters.php = {
 				type = "executable",
 				command = "node",
-				args = { "/Users/b.stavenuiter/code/vscode-php-debug/out/phpDebug.js" },
+				args = { vim.fn.trim(vim.fn.system("npm root -g")) .. "/php-debug/out/phpDebug.js" },
 			}
 
 			dap.configurations.php = {
