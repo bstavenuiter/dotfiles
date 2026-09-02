@@ -24,3 +24,6 @@ cmd + ctrl + alt - right : yabai -m window --swap east
 #alt + shift - n: osascript -e 'activate application "Alacritty"' -e 'tell application "Alacritty"' -e 'tell application "System Events"' -e 'keystroke "a" using {control down}' -e 'keystroke "s"' -e 'keystroke "0"' -e 'delay 0.1' -e 'keystroke "a" using {control down}' -e 'keystroke "1"' -e 'keystroke "G"' -e 'end tell' -e 'end tell'
 #alt + shift - e: osascript -e 'activate application "Alacritty"' -e 'tell application "Alacritty"' -e 'tell application "System Events"' -e 'keystroke "a" using {control down}' -e 'keystroke "s"' -e 'keystroke "0"' -e 'delay 0.1' -e 'keystroke "a" using {control down}' -e 'keystroke "0"' -e 'end tell' -e 'end tell'
 # alt + shift - e: osascript -e 'activate application "WezTerm"' -e 'tell application "WezTerm"' -e 'tell application "System Events"' -e 'keystroke "a" using {control down}' -e 'keystroke "s"' -e 'keystroke "0"' -e 'delay 0.1' -e 'keystroke "a" using {control down}' -e 'keystroke "0"' -e 'end tell' -e 'end tell'
+
+# Jump to the herdr agent that needs attention (works from any app)
+cmd + shift - i : /Users/b.stavenuiter/.local/bin/herdr-jump
