@@ -52,7 +52,7 @@ height = "90%"
 # preview of the pane. Absolute path because the popup does not inherit the
 # interactive PATH that puts ~/.local/bin in reach.
 [[keys.command]]
-key = "prefix+a"
+key = "prefix+i"
 type = "popup"
 command = "herdr-agents"
 description = "Switch agent"
