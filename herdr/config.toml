@@ -1,0 +1,115 @@
+onboarding = false
+
+[ui.toast]
+delivery = "terminal"
+delay_seconds = 1
+
+[ui.toast.herdr]
+position = "top-left"
+
+[ui.sound]
+enabled = false
+
+[keys]
+prefix = "ctrl+a"
+# ctrl+h and ctrl+l go through herdr-nav below instead of the built-in actions,
+# so neovim keeps them while it still has a split to move to. Herdr intercepts
+# direct bindings before the pane sees them, so this is the only way to get the
+# is_vim behaviour of tmux/.tmux.conf.
+focus_pane_left = ""
+focus_pane_right = ""
+# prefix+j defaults to focus_pane_down; freed for the space picker below.
+focus_pane_down = ""
+# The built-in new-worktree action ignores the .bare sibling layout and would
+# drop every project's checkouts into ~/.herdr/worktrees/.bare. herdr-worktree
+# replaces it; its default key (prefix+shift+g) is lazygit's here anyway.
+new_worktree = ""
+open_worktree = "prefix+o"
+
+# Pane focus left/right, but forwarded to the pane whenever it runs vim. See
+# bin/herdr-nav; the neovim side is nvim/lua/herdr.lua.
+[[keys.command]]
+key = "ctrl+h"
+type = "shell"
+command = "herdr-nav left ctrl+h"
+description = "Focus pane left"
+
+[[keys.command]]
+key = "ctrl+l"
+type = "shell"
+command = "herdr-nav right ctrl+l"
+description = "Focus pane right"
+
+[[keys.command]]
+key = "prefix+g"
+type = "popup"
+command = "lazygit"
+description = "Run lazygit"
+width = "90%"
+height = "90%"
+
+# Agent picker: attention-first list of every agent with its topic and a live
+# preview of the pane. Absolute path because the popup does not inherit the
+# interactive PATH that puts ~/.local/bin in reach.
+[[keys.command]]
+key = "prefix+a"
+type = "popup"
+command = "herdr-agents"
+description = "Switch agent"
+width = "90%"
+height = "90%"
+
+# Space picker: the projects under ~/code, jumping to the space already rooted
+# in the one you pick or creating it there. Mirrors tmux prefix + C-j (tmux/t).
+[[keys.command]]
+key = "prefix+j"
+type = "popup"
+command = "herdr-spaces"
+description = "Switch space"
+width = "60%"
+height = "60%"
+
+# New worktree, placed beside the repo's .bare rather than under ~/.herdr.
+# prefix + ctrl + w mirrors the tmux binding for wt.
+[[keys.command]]
+key = "prefix+ctrl+w"
+type = "popup"
+command = "herdr-worktree"
+description = "New worktree"
+width = "70%"
+height = "70%"
+
+
+# Worktree picker: every worktree of the current project, newest activity first,
+# opened as a space. herdr's own open_worktree (prefix+o) only resolves the repo
+# from a space sitting on .bare; this passes --cwd so it works from any of them.
+# prefix + ctrl + o pairs with the prefix + ctrl + w that creates one.
+[[keys.command]]
+key = "prefix+ctrl+o"
+type = "popup"
+command = "herdr-worktrees"
+description = "Switch worktree"
+width = "70%"
+height = "70%"
+
+[ui]
+agent_panel_sort = "spaces"
+copy_on_select = false
+prompt_new_tab_name = false
+
+[theme]
+#name = "solarized-light"
+auto_switch = false
+
+# BEGIN jhochenbaum.hunkdiff — managed by `setup-keys`; edit via the plugin, not by hand
+[[keys.command]]
+key = "prefix+shift+h"
+type = "plugin_action"
+command = "jhochenbaum.hunkdiff.review"
+description = "hunk: review changes"
+
+[[keys.command]]
+key = "prefix+shift+s"
+type = "plugin_action"
+command = "jhochenbaum.hunkdiff.send-review"
+description = "hunk: send review to agent"

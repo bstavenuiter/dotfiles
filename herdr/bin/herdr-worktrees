@@ -1,0 +1,181 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# herdr-worktrees — jump between the worktrees of the current project.
+#
+# The counterpart of herdr-spaces on the other axis: herdr-spaces moves between
+# projects (one level under ~/code), this moves between the worktrees of the
+# project you are already in. Together they replace what tmux did with a session
+# per project and a window per worktree. Herdr has no window-per-worktree — its
+# native unit for a worktree is a whole space, which is why `worktree remove` is
+# addressed by --workspace — so switching worktrees is switching spaces here.
+#
+# Layout assumed, matching ~/code and herdr-worktree:
+#
+#   ~/code/myproject/.bare              <- the repo
+#   ~/code/myproject/main               <- worktrees, siblings of .bare
+#   ~/code/myproject/feat-123.myproject
+#
+# Herdr's own open_worktree action does the same job, but resolves the repo from
+# the active space and so only works from the space sitting on .bare: it refuses
+# a linked worktree as the source ("New and open worktree actions start from the
+# repo parent workspace"), and the project folder itself is not a work tree in
+# this layout — it only holds .bare and the checkouts, and git never treats a
+# subdirectory named .bare as its repo. Passing --cwd explicitly is what makes
+# this work from any space of the project.
+#
+# Launched from a herdr popup bound to prefix + ctrl + o, beside the
+# prefix + ctrl + w that creates one (see ../config.toml).
+#
+# Installed by hand, like the rest of this repo:
+#
+#   ln -s ~/code/dotfiles/herdr/bin/herdr-worktrees ~/.local/bin/herdr-worktrees
+
+# herdr popups run with a thin environment; don't rely on PATH.
+PATH="/opt/homebrew/bin:$PATH"
+HERDR="${HERDR_BIN:-$HOME/.local/bin/herdr}"
+
+# Popups vanish the moment the command exits, so anything worth reading needs a
+# keypress to hold it on screen.
+hold() {
+    echo "$1"
+    if [[ -t 0 ]]; then
+        echo "(press any key)"
+        read -r -s -n 1 || true
+    fi
+}
+
+# The repo's git dir, reached from wherever the popup was invoked.
+resolve_git_dir() {
+    local dir="$1" git_dir
+
+    # --path-format keeps this absolute; plain --git-common-dir returns a bare
+    # ".git" from a repo root. Resolves from any worktree of the repo.
+    if git_dir=$(git -C "$dir" rev-parse --path-format=absolute --git-common-dir 2>/dev/null); then
+        printf '%s' "$git_dir"
+        return 0
+    fi
+
+    # Git discovery finds nothing when the space is rooted on the project
+    # folder, since that folder is only a container. The .bare in it is the repo.
+    if [[ -d "$dir/.bare" ]]; then
+        printf '%s' "$dir/.bare"
+        return 0
+    fi
+
+    return 1
+}
+
+# "directory  branch<TAB>path" per worktree, most recently touched first — the
+# order that matters when hopping between the two or three you are actually
+# working in. Bare and prunable entries are dropped: the first is the repo
+# itself, the second is a checkout git has already lost.
+worktrees() {
+    local list
+    list=$(git --git-dir="$1" worktree list --porcelain | awk '
+        function flush() {
+            if (path != "" && !bare && !prunable) print path "\t" branch
+            path = ""; branch = ""; bare = 0; prunable = 0
+        }
+        /^worktree /  { flush(); path = substr($0, 10); next }
+        /^bare$/      { bare = 1; next }
+        /^prunable/   { prunable = 1; next }
+        /^detached$/  { branch = "(detached)"; next }
+        /^branch /    { branch = substr($0, 8); sub(/^refs\/heads\//, "", branch); next }
+        END           { flush() }
+    ')
+    [[ -n "$list" ]] || return 0
+
+    # Two inputs rather than -v, which cannot carry a multi-line value: the
+    # first pass loads path -> branch, the second walks the paths in mtime
+    # order. A single ls does that ordering — cheaper and steadier than a stat
+    # per worktree, and -d keeps ls from descending into them.
+    awk '
+        NR == FNR { split($0, f, "\t"); branch[f[1]] = f[2]; next }
+        {
+            leaf = $0
+            sub(/.*\//, "", leaf)
+            # Padding lives inside the display field: fzf joins --with-nth
+            # fields with the delimiter, and a tab there would fight alignment.
+            printf "%-30s %s\t%s\n", leaf, (branch[$0] != "" ? branch[$0] : "?"), $0
+        }
+    ' <(printf '%s\n' "$list") \
+      <(cut -f1 <<<"$list" | tr '\n' '\0' | xargs -0 ls -dt 2>/dev/null)
+}
+
+# Label the repo's parent space after the project folder. The sidebar nests a
+# repo's worktree spaces under the space sitting on the repo itself and prints
+# that space's label as the group header, so a space herdr auto-named ".bare"
+# makes the group read ".bare" — saying nothing about which project it holds,
+# and reading identically for every project on this convention. Only that
+# auto-name is replaced; a label chosen by hand is left alone.
+name_repo_space() {
+    local git_dir="$1" project parent_id parent_label
+
+    # Parent of the git dir is the project folder in both layouts: <project>/.bare
+    # for the bare convention, <toplevel>/.git for an ordinary repo.
+    project=$(basename "$(dirname "$git_dir")")
+    [[ -n "$project" && "$project" != "/" && "$project" != "." ]] || return 0
+
+    parent_id=$("$HERDR" worktree list --cwd "$git_dir" 2>/dev/null \
+        | jq -r '.result.worktrees[]? | select(.is_bare == true) | .open_workspace_id // empty') || return 0
+
+    # Nothing to rename when the repo has no space open on it.
+    [[ -n "$parent_id" ]] || return 0
+
+    # The space's own label, not the worktree entry's: that one always reports
+    # ".bare" because it comes from repo_name, and comparing against it would
+    # overwrite a label chosen by hand.
+    parent_label=$("$HERDR" workspace get "$parent_id" 2>/dev/null \
+        | jq -r '.result.workspace.label // empty') || return 0
+    [[ "$parent_label" == ".bare" ]] || return 0
+
+    "$HERDR" workspace rename "$parent_id" "$project" >/dev/null 2>&1 || true
+}
+
+main() {
+    if [[ ! -x "$HERDR" ]]; then
+        hold "herdr-worktrees: no herdr binary at $HERDR."
+        exit 0
+    fi
+
+    # Custom commands inherit the invoking pane's directory; $PWD covers being
+    # run straight from a shell.
+    local source_dir git_dir
+    source_dir="${HERDR_ACTIVE_PANE_CWD:-$PWD}"
+
+    if ! git_dir=$(resolve_git_dir "$source_dir"); then
+        hold "herdr-worktrees: no git repository at $source_dir."
+        exit 0
+    fi
+
+    local selection path
+    selection=$(worktrees "$git_dir" \
+        | fzf --layout=reverse --delimiter=$'\t' --with-nth=1 \
+              --prompt="worktree> " \
+              --header="enter: open worktree as a space") || exit 0
+    [[ -n "$selection" ]] || exit 0
+
+    path=$(cut -f2 <<<"$selection")
+    [[ -n "$path" ]] || exit 0
+
+    # --cwd must be the repo, never a worktree: herdr refuses worktree actions
+    # whose source is a linked worktree. An already-open worktree comes back as
+    # already_open and is simply focused.
+    local response error
+    response=$("$HERDR" worktree open \
+        --cwd "$git_dir" \
+        --path "$path" \
+        --focus 2>&1) || true
+
+    # herdr reports failures as a JSON body with exit 0, so check the payload.
+    error=$(jq -r '.error.message // empty' <<<"$response" 2>/dev/null || true)
+    if [[ -n "$error" ]]; then
+        hold "herdr-worktrees: $error"
+        exit 0
+    fi
+
+    name_repo_space "$git_dir"
+}
+
+main "$@"

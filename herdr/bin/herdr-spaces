@@ -1,0 +1,187 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# herdr-spaces — pick a project directory and jump to its herdr space.
+#
+# The herdr counterpart of tmux/t: the same list of candidate directories
+# (everything one level under ~/code, plus /tmp and ~/Downloads), and the same
+# get-or-create behaviour — reuse the space already sitting in that directory,
+# otherwise create one rooted there. tmux keys its sessions by name; herdr
+# derives labels itself (a worktree space is labelled after its branch, not its
+# path), so the match runs on the panes' cwd and only falls back to the label.
+#
+# The list goes up before herdr is asked anything. The snapshot only resolves
+# the directory you picked, so it runs after the pick, hidden behind the jump.
+#
+# Launched from a herdr popup bound to prefix + j (see ../config.toml).
+#
+# Installed by hand, like the rest of this repo:
+#
+#   ln -s ~/code/dotfiles/herdr/bin/herdr-spaces ~/.local/bin/herdr-spaces
+
+# herdr popups run with a thin environment; don't rely on PATH.
+PATH="/opt/homebrew/bin:$PATH"
+HERDR="${HERDR_BIN:-$HOME/.local/bin/herdr}"
+
+# Popups vanish the moment the command exits, so anything worth reading needs a
+# keypress to hold it on screen.
+hold() {
+    echo "$1"
+    if [[ -t 0 ]]; then
+        echo "(press any key)"
+        read -r -s -n 1 || true
+    fi
+}
+
+# Candidate directories, same set as tmux/t.
+candidates() {
+    find "$HOME/code" -maxdepth 1 -mindepth 1 -type d
+    echo /tmp
+    echo "$HOME/Downloads"
+}
+
+# "workspace_id<TAB>label<TAB>cwd" for every pane, so a space rooted anywhere
+# its panes sit can be found again.
+SPACES=""
+load_spaces() {
+    SPACES=$("$HERDR" api snapshot 2>/dev/null | jq -r '
+        .result.snapshot as $s
+        | (($s.workspaces // []) | map({key: .workspace_id, value: .label}) | from_entries) as $ws
+        | ($s.panes // [])[]
+        | [ .workspace_id, ($ws[.workspace_id] // ""), (.cwd // "") ]
+        | join("\t")
+    ' 2>/dev/null) || SPACES=""
+}
+
+# herdr reports physical paths, so /tmp comes back as /private/tmp and would
+# never match on a literal compare.
+physical() {
+    (cd "$1" 2>/dev/null && pwd -P) || echo "$1"
+}
+
+# The space to reuse for a directory, or empty. Exact cwd match first — a
+# prefix match would send you into a worktree when you asked for the repo root.
+# Falls back to the label for spaces whose shell has since cd'd elsewhere.
+space_for() {
+    local dir name workspace_id label cwd fallback=""
+    dir=$(physical "$1")
+    name="${1##*/}"
+
+    [[ -n "$SPACES" ]] || return 0
+
+    while IFS=$'\t' read -r workspace_id label cwd; do
+        [[ -n "$workspace_id" ]] || continue
+        [[ "$cwd" == "$dir" ]] && { echo "$workspace_id"; return 0; }
+        [[ -z "$fallback" && "$label" == "$name" ]] && fallback="$workspace_id"
+    done <<<"$SPACES"
+
+    [[ -n "$fallback" ]] && echo "$fallback"
+    return 0
+}
+
+# The repo's own space for a project on the .bare convention: the space herdr
+# hangs a worktree group on, and the only place that group's header text comes
+# from. Empty when the repo has no space open.
+repo_space_id() {
+    "$HERDR" worktree list --cwd "$1" 2>/dev/null \
+        | jq -r '.result.worktrees[]? | select(.is_bare == true) | .open_workspace_id // empty' \
+          2>/dev/null || true
+}
+
+# Open a .bare-convention project the way its worktrees want to be grouped:
+# establish the repo's own space, name it after the project, and leave its shell
+# in the project folder rather than down inside .bare. Returns 1 when the
+# project is not on the convention, so the caller falls back to a plain space.
+open_bare_project() {
+    local project="$1" git_dir="$1/.bare" primary="" name id label pane pane_cwd
+
+    [[ -d "$git_dir" ]] || return 1
+
+    # The primary checkout is a directory called main or master; the branch
+    # inside it is often something else (master, develop), so match the
+    # directory rather than the branch.
+    for name in main master; do
+        if [[ -d "$project/$name" ]] &&
+           git -C "$project/$name" rev-parse --git-dir >/dev/null 2>&1; then
+            primary="$project/$name"
+            break
+        fi
+    done
+    [[ -n "$primary" ]] || return 1
+
+    # Nothing creates the repo's space directly. Opening a worktree with the
+    # repo as the source does it on the way past, which is why the primary
+    # checkout is opened here rather than for its own sake.
+    id=$(repo_space_id "$git_dir")
+    if [[ -z "$id" ]]; then
+        "$HERDR" worktree open --cwd "$git_dir" --path "$primary" --no-focus \
+            >/dev/null 2>&1 || true
+        id=$(repo_space_id "$git_dir")
+    fi
+    [[ -n "$id" ]] || return 1
+
+    # herdr auto-names that space ".bare", and the group header is exactly that
+    # label — identical for every project on the convention, so it says nothing
+    # about which project the group holds. A label chosen by hand is left alone.
+    label=$("$HERDR" workspace get "$id" 2>/dev/null \
+        | jq -r '.result.workspace.label // empty' 2>/dev/null || true)
+    if [[ "$label" == ".bare" ]]; then
+        "$HERDR" workspace rename "$id" "${project##*/}" >/dev/null 2>&1 || true
+    fi
+
+    # Move its shell up out of .bare. The space stays the repo parent through
+    # this: the association is the checkout it was opened on, not wherever its
+    # shell later sits. Only a shell still in .bare is touched, so re-opening a
+    # project never types into a pane that is being used for something.
+    pane=$("$HERDR" pane list --workspace "$id" 2>/dev/null \
+        | jq -r '.result.panes[0].pane_id // empty' 2>/dev/null || true)
+    if [[ -n "$pane" ]]; then
+        pane_cwd=$("$HERDR" pane get "$pane" 2>/dev/null \
+            | jq -r '.result.pane.cwd // empty' 2>/dev/null || true)
+        if [[ "$pane_cwd" == "$git_dir" ]]; then
+            "$HERDR" pane send-text "$pane" "cd $project" >/dev/null 2>&1 || true
+            "$HERDR" pane send-keys "$pane" enter >/dev/null 2>&1 || true
+        fi
+    fi
+
+    "$HERDR" workspace focus "$id" >/dev/null 2>&1 || true
+    return 0
+}
+
+main() {
+    if [[ ! -x "$HERDR" ]]; then
+        hold "herdr-spaces: no herdr binary at $HERDR."
+        exit 0
+    fi
+
+    local selected
+    if [[ $# -ge 1 ]]; then
+        selected="$1"
+    else
+        selected=$(candidates | fzf --layout=reverse --prompt="space> ") || exit 0
+    fi
+
+    # Nothing selected when you ctrl-c out of fzf.
+    [[ -n "$selected" ]] || exit 0
+
+    if [[ ! -d "$selected" ]]; then
+        hold "herdr-spaces: no such directory: $selected"
+        exit 0
+    fi
+
+    load_spaces
+
+    local existing
+    existing=$(space_for "$selected")
+
+    if [[ -n "$existing" ]]; then
+        "$HERDR" workspace focus "$existing" >/dev/null 2>&1 || true
+    elif ! open_bare_project "$selected"; then
+        "$HERDR" workspace create \
+            --cwd "$selected" \
+            --label "${selected##*/}" \
+            --focus >/dev/null 2>&1 || true
+    fi
+}
+
+main "$@"

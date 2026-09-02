@@ -1,0 +1,127 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# herdr-worktree — create a git worktree beside its .bare and open it as a space.
+#
+# Herdr's built-in new-worktree action puts checkouts in <worktrees.directory>/
+# <repo_name>/<branch>, which this repo's layout breaks in two ways: the
+# checkout lands under ~/.herdr rather than next to its siblings, and repo_name
+# resolves to ".bare" for every project using the convention, so they all pile
+# into one directory. That setting is a single global path with no per-repo
+# templating (a relative value resolves against the herdr server's cwd, not the
+# repo), so the placement has to be computed here and passed as --path.
+#
+# Layout assumed, matching ~/code:
+#
+#   ~/code/myproject/.bare              <- the repo
+#   ~/code/myproject/main               <- worktrees, siblings of .bare
+#   ~/code/myproject/feat-123.myproject
+#
+# The trailing ".myproject" is per-project, read from git config on the repo:
+#
+#   git -C ~/code/myproject/.bare config wt.suffix .myproject
+#
+# Git resolves that from every worktree of the repo, including ones created
+# later, so it needs setting once per project. Projects that never set it just
+# get bare leaf names.
+#
+# Launched from a herdr popup bound to prefix + ctrl + w, mirroring the tmux
+# binding for wt (see ../config.toml).
+#
+# Installed by hand, like the rest of this repo:
+#
+#   ln -s ~/code/dotfiles/herdr/bin/herdr-worktree ~/.local/bin/herdr-worktree
+
+# herdr popups run with a thin environment; don't rely on PATH.
+PATH="/opt/homebrew/bin:$PATH"
+HERDR="${HERDR_BIN:-$HOME/.local/bin/herdr}"
+
+# Popups vanish the moment the command exits, so anything worth reading needs a
+# keypress to hold it on screen.
+hold() {
+    echo "$1"
+    if [[ -t 0 ]]; then
+        echo "(press any key)"
+        read -r -s -n 1 || true
+    fi
+}
+
+# Strip anything that has no business in a directory name, and flatten the
+# branch prefix: feature/feat-123-export -> feat-123-export.
+slugify() {
+    printf '%s' "${1##*/}" | tr -cs '[:alnum:]._-' '-' | sed 's/^-*//; s/-*$//'
+}
+
+main() {
+    if [[ ! -x "$HERDR" ]]; then
+        hold "herdr-worktree: no herdr binary at $HERDR."
+        exit 0
+    fi
+
+    # Custom commands inherit the invoking pane's directory; $PWD covers being
+    # run straight from a shell.
+    local source_dir="${HERDR_ACTIVE_PANE_CWD:-$PWD}"
+
+    # --path-format keeps this absolute; plain --git-common-dir returns a bare
+    # ".git" when run from a repo root.
+    local git_dir
+    if ! git_dir=$(git -C "$source_dir" rev-parse --path-format=absolute --git-common-dir 2>/dev/null); then
+        hold "herdr-worktree: not inside a git repository ($source_dir)."
+        exit 0
+    fi
+
+    # Worktrees are siblings of the .bare. For an ordinary repo the git dir sits
+    # *inside* the working tree, so siblings of the checkout are what's meant.
+    local parent
+    if [[ "$(basename "$git_dir")" == ".bare" ]]; then
+        parent="$(dirname "$git_dir")"
+    else
+        parent="$(dirname "$(git -C "$source_dir" rev-parse --show-toplevel)")"
+    fi
+
+    local suffix
+    suffix=$(git -C "$source_dir" config --get wt.suffix 2>/dev/null || true)
+
+    # Existing branches to pick from; --print-query lets a typed name through so
+    # the same prompt creates a new branch.
+    local branch
+    branch=$(git -C "$git_dir" for-each-ref --format='%(refname:short)' \
+                 --sort=-committerdate refs/heads \
+             | fzf --print-query --prompt="branch> " \
+                   --header="enter: use branch (type a new name to create it)" \
+             | tail -1) || true
+    [[ -n "$branch" ]] || exit 0
+
+    # Directory name is a human choice — feature/feat-123-export lives
+    # in feat-123.myproject — so offer the slug and let it be edited.
+    local name
+    read -r -e -p "directory> " -i "$(slugify "$branch")" name </dev/tty || exit 0
+    name=$(slugify "$name")
+    [[ -n "$name" ]] || exit 0
+
+    local wt_path="$parent/$name$suffix"
+    if [[ -e "$wt_path" ]]; then
+        hold "herdr-worktree: $wt_path already exists."
+        exit 0
+    fi
+
+    # --cwd must point at the repo itself: herdr refuses worktree actions whose
+    # source is a linked worktree ("start from the repo parent workspace"), and
+    # passing the git dir makes this work from any space of the repo.
+    local response error
+    response=$("$HERDR" worktree create \
+        --cwd "$git_dir" \
+        --branch "$branch" \
+        --path "$wt_path" \
+        --label "$name" \
+        --focus 2>&1) || true
+
+    # herdr reports failures as a JSON body with exit 0, so check the payload.
+    error=$(jq -r '.error.message // empty' <<<"$response" 2>/dev/null || true)
+    if [[ -n "$error" ]]; then
+        hold "herdr-worktree: $error"
+        exit 0
+    fi
+}
+
+main "$@"

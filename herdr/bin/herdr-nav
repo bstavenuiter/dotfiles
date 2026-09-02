@@ -1,0 +1,76 @@
+#!/bin/zsh
+# herdr-nav — vim-aware pane navigation, the herdr counterpart of the
+# is_vim/if-shell trick in tmux/.tmux.conf. Herdr intercepts direct keybindings
+# before the pane sees them, so ctrl+h and ctrl+l are bound to this instead:
+# when the focused pane is running vim the key is injected into the pane and
+# neovim moves its own split, otherwise herdr moves the pane focus.
+#
+# The other half lives in nvim/lua/herdr.lua, which hands the move back to
+# herdr once neovim runs out of splits in that direction.
+#
+#   herdr-nav left ctrl+h
+#
+# This talks to the API socket directly rather than shelling out to the herdr
+# CLI, because it runs on every single pane switch. Two CLI calls cost ~68ms —
+# almost all of it the binary's own startup, the socket round trip itself is
+# free — against ~11ms for one zsh process. The CLI is kept as a fallback for
+# when the socket cannot be opened.
+#
+# Installed by hand, like the rest of this repo:
+#
+#   ln -s ~/code/dotfiles/herdr/bin/herdr-nav ~/.local/bin/herdr-nav
+
+emulate -L zsh
+
+# herdr runs commands with a thin environment; don't rely on PATH.
+PATH="$HOME/.local/bin:$PATH"
+
+local dir=$1 # left | right
+local key=$2 # the key to forward when vim is in charge, e.g. ctrl+h
+
+local sock=${HERDR_SOCKET_PATH:-$HOME/.config/herdr/herdr.sock}
+local reply socket_ok=
+
+zmodload zsh/net/socket 2>/dev/null && socket_ok=1
+
+# One request/response, over its own connection: the server answers and then
+# hangs up, so a second write down the same socket earns a SIGPIPE. Falls back
+# to the herdr CLI when the socket is unusable. Sets $reply to the raw JSON; an
+# unparseable reply is treated as "not vim" below, so a protocol change
+# degrades to plain pane moves rather than dead keys.
+request() {
+  local fd
+  if [[ -n $socket_ok ]] && zsocket $sock 2>/dev/null; then
+    fd=$REPLY
+    print -u$fd -r -- "$1" && read -u$fd -r reply
+    exec {fd}>&-
+    return
+  fi
+  shift
+  reply=$(herdr "$@" 2>/dev/null)
+}
+
+# No pane_id: process_info resolves the pane herdr currently has focused.
+request '{"id":"nav","method":"pane.process_info","params":{}}' \
+  pane process-info
+
+local pane=
+[[ $reply == *'"pane_id":"'* ]] && pane=${${reply#*\"pane_id\":\"}%%\"*}
+
+# argv0 rather than name: claude reports its version string as the name.
+# This is the process set tmux's is_vim regex matches, spelled as a glob.
+local -i vim=0
+local rest=$reply name
+while [[ $rest == *'"argv0":"'* ]]; do
+  rest=${rest#*\"argv0\":\"}
+  name=${${rest%%\"*}:t}
+  [[ $name == (g|)(view|vi|vim|vimx|nvi|nvim|nvimx)(|diff) ]] && vim=1
+done
+
+if (( vim )) && [[ -n $pane ]]; then
+  request "{\"id\":\"nav\",\"method\":\"pane.send_keys\",\"params\":{\"pane_id\":\"$pane\",\"keys\":[\"$key\"]}}" \
+    pane send-keys "$pane" "$key"
+else
+  request "{\"id\":\"nav\",\"method\":\"pane.focus_direction\",\"params\":{\"direction\":\"$dir\"}}" \
+    pane focus --direction "$dir"
+fi

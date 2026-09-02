@@ -1,0 +1,208 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# herdr-agents — pick a herdr agent from a list and switch to it.
+#
+# Rows are ordered attention-first (blocked, done, idle, working) and, inside
+# each of those groups, most-recently-active first. Each row carries the
+# conversation topic (herdr's terminal title, which Claude keeps set to a short
+# summary) and the fzf preview shows the pane as it looks right now, so you can
+# tell two similar sessions apart before switching into one.
+#
+# herdr exposes no timestamps, only a monotonic state_change_seq, so wall-clock
+# age comes from the mtime of the agent's Claude transcript. Agents without a
+# resolvable transcript (non-Claude agents, moved cwd) still sort sensibly on
+# state_change_seq and render their age as a dash.
+#
+# Launched from a herdr popup bound to prefix + a (see ../config.toml).
+# The _list and _preview subcommands are internal, called back by fzf.
+#
+# Installed by hand, like the rest of this repo. ~/.config/herdr holds live
+# runtime state (sockets, logs), so the config is a file-level symlink:
+#
+#   ln -s ~/code/dotfiles/herdr/bin/herdr-agents ~/.local/bin/herdr-agents
+#   ln -s ~/code/dotfiles/herdr/config.toml      ~/.config/herdr/config.toml
+
+# herdr popups and skhd both run with a thin environment; don't rely on PATH.
+PATH="/opt/homebrew/bin:$PATH"
+HERDR="${HERDR_BIN:-$HOME/.local/bin/herdr}"
+
+# Attention order. Lower sorts first.
+priority_of() {
+    case "$1" in
+        blocked) echo 0 ;;
+        done)    echo 1 ;;
+        idle)    echo 2 ;;
+        working) echo 3 ;;
+        *)       echo 4 ;;
+    esac
+}
+
+# Icons are all single-cell glyphs so the padded status column stays aligned.
+icon_of() {
+    case "$1" in
+        blocked) printf '\033[33m●\033[0m' ;;
+        done)    printf '\033[32m✓\033[0m' ;;
+        idle)    printf '\033[34m○\033[0m' ;;
+        working) printf '\033[36m◐\033[0m' ;;
+        *)       printf '\033[2m·\033[0m' ;;
+    esac
+}
+
+fmt_age() {
+    local secs="$1"
+    if   (( secs < 60 ));    then echo "now"
+    elif (( secs < 3600 ));  then echo "$(( secs / 60 ))m"
+    elif (( secs < 86400 )); then echo "$(( secs / 3600 ))h"
+    else                          echo "$(( secs / 86400 ))d"
+    fi
+}
+
+# Claude writes one transcript per session under a slug of the cwd, with both
+# slashes and dots flattened to dashes. Its mtime is the agent's last activity.
+transcript_mtime() {
+    local cwd="$1" session_uuid="$2"
+    [[ -n "$cwd" && -n "$session_uuid" ]] || return 0
+    local file="$HOME/.claude/projects/${cwd//[\/.]/-}/${session_uuid}.jsonl"
+    [[ -f "$file" ]] || return 0
+    stat -f %m "$file" 2>/dev/null || true
+}
+
+# Popups vanish the moment the command exits, so anything worth reading needs a
+# keypress to hold it on screen.
+hold() {
+    echo "$1"
+    if [[ -t 0 ]]; then
+        echo "(press any key)"
+        read -r -s -n 1 || true
+    fi
+}
+
+# One snapshot call carries both the agents and the workspace labels.
+# Flattened to "pane_id status workspace topic seq cwd session_uuid", tab separated.
+raw_agents() {
+    local snapshot
+    snapshot=$("$HERDR" api snapshot 2>/dev/null) || return 1
+    jq -e '.result.snapshot' >/dev/null 2>&1 <<<"$snapshot" || return 1
+
+    jq -r '
+        .result.snapshot as $s
+        | (($s.workspaces // []) | map({key: .workspace_id, value: .label}) | from_entries) as $ws
+        | def clean: (. // "") | gsub("[\t\r\n]"; " ") | sub("^ +"; "") | sub(" +$"; "");
+        # Titles often keep the agent status glyph herdr already draws for us.
+        # \p{So} covers ✳ ◐ ✻ and friends; · is Po, so it needs naming.
+          def untitle: clean | sub("^[\\p{So}·]+\\s*"; "");
+          ($s.agents // [])[]
+        | [ .pane_id,
+            (.agent_status // "unknown"),
+            (($ws[.workspace_id] // .workspace_id) | clean),
+            ((.terminal_title_stripped // .terminal_title) | untitle | .[0:70]),
+            ((.state_change_seq // 0) | tostring),
+            (.cwd // ""),
+            (.agent_session.value // "")
+          ] | join("\t")
+    ' <<<"$snapshot"
+}
+
+# Emit "display<TAB>pane_id" rows, sorted. Also fzf's reload source.
+cmd_list() {
+    local pane status workspace topic seq cwd session_uuid
+    local rows=() mtime age now
+    now=$(date +%s)
+
+    while IFS=$'\t' read -r pane status workspace topic seq cwd session_uuid; do
+        [[ -n "$pane" ]] || continue
+
+        # Fall back to the directory name when the agent has no title yet.
+        [[ -n "$topic" ]] || topic="${cwd##*/}"
+
+        mtime=$(transcript_mtime "$cwd" "$session_uuid")
+        if [[ -n "$mtime" ]]; then
+            local secs=$(( now - mtime ))
+            (( secs < 0 )) && secs=0
+            age=$(fmt_age "$secs")
+        else
+            mtime=0
+            age="-"
+        fi
+
+        # Sort keys lead and are stripped before display. Padding is applied to
+        # plain text and coloured afterwards, so the colour codes cost no width.
+        rows+=("$(priority_of "$status")"$'\t'"$mtime"$'\t'"$seq"$'\t'"$(
+            printf '%s \033[1m%-7s\033[0m %-4s \033[2m%-16.16s\033[0m %s' \
+                "$(icon_of "$status")" "$status" "$age" "$workspace" "$topic"
+        )"$'\t'"$pane")
+    done < <(raw_agents)
+
+    (( ${#rows[@]} == 0 )) && return 0
+
+    # Attention group first, then newest activity, then newest state change.
+    printf '%s\n' "${rows[@]}" \
+        | sort -t $'\t' -k1,1n -k2,2nr -k3,3nr \
+        | cut -f4-
+}
+
+# Live view of the highlighted pane. Agent-agnostic — it is just the terminal.
+cmd_preview() {
+    local pane="$1"
+    [[ -n "$pane" ]] || return 0
+
+    # herdr reports failures as a JSON line on stdout with exit 0, so filter
+    # rather than test $?. Its output is CR-terminated.
+    local out
+    out=$("$HERDR" agent read "$pane" \
+        --source recent \
+        --lines "${FZF_PREVIEW_LINES:-40}" \
+        --format ansi 2>/dev/null \
+        | tr -d '\r' \
+        | grep -v '^{"error"' \
+        || true)
+
+    # Glob rather than ${out//[[:space:]]/} — bash pattern substitution with a
+    # POSIX class over a few KB in a UTF-8 locale costs ~1.7s per preview.
+    if [[ "$out" == *[![:space:]]* ]]; then
+        printf '%s\n' "$out"
+    else
+        echo "(no output for $pane)"
+    fi
+}
+
+cmd_switch() {
+    if [[ ! -x "$HERDR" ]]; then
+        hold "herdr-agents: no herdr binary at $HERDR."
+        exit 0
+    fi
+
+    local display
+    display=$(cmd_list)
+
+    if [[ -z "$display" ]]; then
+        hold "herdr-agents: no agents found (is the herdr server running?)."
+        exit 0
+    fi
+
+    local selected
+    # --no-sort: typing a query must filter, never reorder — the attention-first
+    # ordering is the whole point of the list.
+    selected=$(fzf --ansi \
+        --layout=reverse \
+        --no-sort \
+        --delimiter=$'\t' \
+        --with-nth=1 \
+        --accept-nth=2 \
+        --prompt="agent> " \
+        --header="enter: switch to agent • ctrl-r: refresh" \
+        --preview="$0 _preview {2}" \
+        --preview-window=right:55% \
+        --bind="ctrl-r:reload($0 _list || true)" \
+        <<<"$display") || exit 0
+
+    [[ -n "$selected" ]] || exit 0
+    "$HERDR" agent focus "$selected" >/dev/null 2>&1 || true
+}
+
+case "${1:-}" in
+    _list)    cmd_list ;;
+    _preview) shift; cmd_preview "${1:-}" ;;
+    *)        cmd_switch ;;
+esac
