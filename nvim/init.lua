@@ -72,6 +72,7 @@ vim.opt.expandtab = true
 
 -- Copying
 vim.keymap.set('n', '<leader>yp', function() vim.fn.setreg('+', vim.fn.expand('%:p:.')) end, {desc = 'Copy file path' })
+vim.keymap.set('n', '<leader>ya', function() vim.fn.setreg('+', vim.fn.expand('%:p')) end, {desc = 'Copy absolute file path' })
 vim.keymap.set('n', '<leader>yd', function() vim.fn.setreg('+', vim.fn.expand('%:h')) end, {desc = 'Copy directory path' })
 vim.keymap.set('n', '<leader>yf', function() vim.fn.setreg('+', vim.fn.expand('%:t:r')) end, {desc = 'Copy file name' })
 --
