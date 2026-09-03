@@ -6,26 +6,14 @@ font-feature = -calt
 
 adjust-cell-height = 30%
 
-foreground = dcdfe4
-background = 292727
-
 quick-terminal-size = 75%,80%
 quick-terminal-animation-duration = 0
 
-# Size the quick terminal against the screen the pointer is on. The default
-# (`main`) means "screen currently receiving keyboard input", so with the
-# external monitor attached Ghostty would compute the size from the built-in
-# display (80% of 1512 = 1210px) and then draw the panel centered on the
-# 2560px-wide external one, i.e. a too-small window that ignored the config.
+# open quick terminal on the monitor with the mouse, avoids creating to small a window
 quick-terminal-screen = mouse
 
 keybind = global:cmd+backquote=toggle_quick_terminal
 
-# Report Option as Alt, so option+backspace reaches pane apps as ESC DEL and zsh
-# runs backward-kill-word instead of deleting one character. Without this, the
-# alt bit survives Ghostty's legacy encoding but not the kitty keyboard protocol
-# that herdr negotiates, so word-delete worked in a plain window and broke inside
-# herdr. Trade-off: option+key no longer composes Unicode (≥, é) in the terminal.
 macos-option-as-alt = true
 
 # no close window notification anymore, this was blocking restarts etc.
