@@ -70,6 +70,18 @@ description = "Switch space"
 width = "60%"
 height = "60%"
 
+# Workspace list: every space that is open right now, to jump to or to close —
+# what tmux's session list was. herdr's native workspace_picker (prefix+w) stays
+# bound and only jumps; this one can also close a space. prefix + ctrl + j sits
+# beside the prefix + j that picks a project.
+[[keys.command]]
+key = "prefix+ctrl+j"
+type = "popup"
+command = "herdr-workspaces"
+description = "Workspaces"
+width = "70%"
+height = "70%"
+
 # New worktree, placed beside the repo's .bare rather than under ~/.herdr.
 # prefix + ctrl + w mirrors the tmux binding for wt.
 [[keys.command]]
