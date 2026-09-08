@@ -1,0 +1,232 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# herdr-workspaces — every open workspace in one list, to jump to or to close.
+#
+# What tmux's session list was: the spaces that exist right now, in herdr's own
+# order, with enter to switch and ctrl-x to close the highlighted one without
+# leaving the list. The third axis next to the other two pickers — herdr-spaces
+# opens a project (whether or not it has a space yet) and herdr-worktrees moves
+# between the worktrees of one project; this one only shows what is already
+# open, which is the list you want when the question is "what am I running, and
+# what can go away".
+#
+# Grouped the way the sidebar groups: a space sitting on a repo is followed by
+# the spaces of that repo's worktrees, indented under it. See group_rows.
+#
+# herdr's native workspace_picker (prefix+w) covers the jumping half and is left
+# bound; it has no way to close a space.
+#
+# Closing the space the popup was opened from takes the popup with it, so the
+# list is gone after that one — deliberate, same as killing the current tmux
+# session from its own list.
+#
+# Launched from a herdr popup bound to prefix + ctrl + j, beside the prefix + j
+# that picks a project (see ../config.toml). The _list and _close subcommands
+# are internal, called back by fzf.
+#
+# Installed by hand, like the rest of this repo:
+#
+#   ln -s ~/code/dotfiles/herdr/bin/herdr-workspaces ~/.local/bin/herdr-workspaces
+
+# herdr popups run with a thin environment; don't rely on PATH.
+PATH="/opt/homebrew/bin:$PATH"
+HERDR="${HERDR_BIN:-$HOME/.local/bin/herdr}"
+
+# Popups vanish the moment the command exits, so anything worth reading needs a
+# keypress to hold it on screen.
+hold() {
+    echo "$1"
+    if [[ -t 0 ]]; then
+        echo "(press any key)"
+        read -r -s -n 1 || true
+    fi
+}
+
+# Same glyphs as herdr-agents, all single-cell so the column stays aligned.
+icon_of() {
+    case "$1" in
+        blocked) printf '\033[33m●\033[0m' ;;
+        done)    printf '\033[32m✓\033[0m' ;;
+        idle)    printf '\033[34m○\033[0m' ;;
+        working) printf '\033[36m◐\033[0m' ;;
+        *)       printf '\033[2m·\033[0m' ;;
+    esac
+}
+
+# "number focused status tree label project tabs panes workspace_id", tab
+# separated, in sidebar order: the spaces by herdr's own numbering — which is
+# what prefix+1..9 counts in — except that a repo's worktree spaces are pulled
+# out of that sequence and listed under the space sitting on the repo, the same
+# grouping the sidebar draws. A worktree space whose repo has no space open has
+# nothing to group under and stays where its number puts it.
+#
+# Two fields exist only for the group:
+#
+#   tree     the connector for a nested row, blank at the top level
+#   project  the repo a row belongs to, and only when the row does not already
+#            say it: a worktree space is labelled after its branch alone, so an
+#            ungrouped one would otherwise read "main" with nothing naming the
+#            repo. Blank under a group header, which names it once for the lot.
+#
+# Blank means a space rather than an empty field throughout: tab counts as IFS
+# whitespace even when IFS is set to just a tab, so two adjacent tabs would
+# collapse into one separator and shift every field after it out of its
+# variable.
+raw_workspaces() {
+    "$HERDR" workspace list 2>/dev/null | jq -r '
+        def clean: (. // "") | gsub("[\t\r\n]"; " ");
+
+        # The project a space belongs to. On the .bare convention repo_name is
+        # always ".bare" — the same for every project — so use the folder that
+        # holds it.
+        def project:
+            (.worktree // {}) as $wt
+            | if $wt.repo_root == null then ""
+              elif $wt.repo_name == ".bare"
+              then ($wt.repo_root | sub("/\\.bare$"; "") | sub(".*/"; ""))
+              else $wt.repo_name end;
+
+        def is_repo_space: .worktree != null and (.worktree.is_linked_worktree | not);
+        def is_worktree_space: (.worktree.is_linked_worktree // false);
+
+        ((.result.workspaces // []) | sort_by(.number)) as $all
+        # The repos that have a space of their own open, and so a row to nest under.
+        | [$all[] | select(is_repo_space) | .worktree.repo_key] as $grouped
+
+        | [ $all[]
+            | . as $w
+            | if ($w | is_worktree_space) and ($grouped | index($w.worktree.repo_key))
+              then empty                                    # emitted under its repo below
+              else
+                  [{w: $w, tree: " ", grouped: false}]
+                  + ( if ($w | is_repo_space)
+                      then [$all[] | select(is_worktree_space and .worktree.repo_key == $w.worktree.repo_key)] as $kids
+                           | [ $kids
+                               | to_entries[]
+                               | {w: .value,
+                                  tree: (if .key == (($kids | length) - 1) then "└─" else "├─" end),
+                                  grouped: true} ]
+                      else [] end )
+              end
+          ] | flatten[]
+
+        | .w as $w
+        | ($w | project) as $project
+        | [ ($w.number // 0 | tostring),
+            (if $w.focused then "*" else " " end),
+            ($w.agent_status // "unknown"),
+            .tree,
+            (($w.label // $w.workspace_id) | clean),
+            (if .grouped or $project == "" or $project == $w.label then " "
+             else ($project | clean) end),
+            ($w.tab_count // 0 | tostring),
+            ($w.pane_count // 0 | tostring),
+            $w.workspace_id
+          ] | join("\t")
+    ' 2>/dev/null || true
+}
+
+plural() {
+    (( $1 == 1 )) && printf '' || printf 's'
+}
+
+# Emit "display<TAB>workspace_id" rows. Also fzf's reload source.
+#
+# Rows are buffered first only to size the project column to the widest project
+# actually there — under a full set of groups nothing needs it, and a fixed
+# column would leave a hole between the labels and the counts.
+cmd_list() {
+    local number focused status tree label project tabs panes id
+    local connector indent project_cell
+    local -a rows=()
+    local project_width=0 row
+
+    while IFS=$'\t' read -r number focused status tree label project tabs panes id; do
+        [[ -n "$id" ]] || continue
+        rows+=("$number"$'\t'"$focused"$'\t'"$status"$'\t'"$tree"$'\t'"$label"$'\t'"$project"$'\t'"$tabs"$'\t'"$panes"$'\t'"$id")
+        if [[ "$project" != " " ]] && (( ${#project} > project_width )); then
+            project_width=${#project}
+        fi
+    done < <(raw_workspaces)
+
+    (( project_width > 20 )) && project_width=20
+
+    for row in "${rows[@]}"; do
+        IFS=$'\t' read -r number focused status tree label project tabs panes id <<<"$row"
+
+        # The connector sits before the status glyph, so a nested row's label
+        # starts where its connector ends. Its width comes off the label column
+        # to keep everything after it aligned.
+        if [[ "$tree" == " " ]]; then
+            connector=""
+            indent=0
+        else
+            connector="$tree "
+            indent=3
+        fi
+
+        if (( project_width > 0 )); then
+            project_cell=$(printf '%-*.*s ' "$project_width" "$project_width" "$project")
+        else
+            project_cell=""
+        fi
+
+        # Padding is applied to plain text and coloured afterwards, so the
+        # colour codes cost no width.
+        printf '%s\t%s\n' "$(
+            printf '\033[2m%2s\033[0m%s \033[2m%s\033[0m%s %-*.*s \033[2m%s%s tab%s %s pane%s\033[0m' \
+                "$number" "$focused" "$connector" "$(icon_of "$status")" \
+                $(( 30 - indent )) $(( 30 - indent )) "$label" \
+                "$project_cell" \
+                "$tabs" "$(plural "$tabs")" "$panes" "$(plural "$panes")"
+        )" "$id"
+    done
+}
+
+# Called back by fzf's ctrl-x. herdr reports failures as a JSON body with exit
+# 0 and the reload right after redraws the list, so a refusal shows as a row
+# that simply stayed.
+cmd_close() {
+    [[ -n "${1:-}" ]] || return 0
+    "$HERDR" workspace close "$1" >/dev/null 2>&1 || true
+}
+
+cmd_switch() {
+    if [[ ! -x "$HERDR" ]]; then
+        hold "herdr-workspaces: no herdr binary at $HERDR."
+        exit 0
+    fi
+
+    local display
+    display=$(cmd_list)
+
+    if [[ -z "$display" ]]; then
+        hold "herdr-workspaces: no workspaces found (is the herdr server running?)."
+        exit 0
+    fi
+
+    local selected
+    # --no-sort: typing a query must filter, never reorder — the grouping is the
+    # point of the list.
+    selected=$(fzf --ansi \
+        --layout=reverse \
+        --no-sort \
+        --delimiter=$'\t' \
+        --with-nth=1 \
+        --accept-nth=2 \
+        --prompt="workspace> " \
+        --header="enter: switch • ctrl-x: close • ctrl-r: refresh" \
+        --bind="ctrl-x:execute-silent($0 _close {2})+reload($0 _list || true)" \
+        --bind="ctrl-r:reload($0 _list || true)" \
+        <<<"$display") || exit 0
+
+    [[ -n "$selected" ]] || exit 0
+    "$HERDR" workspace focus "$selected" >/dev/null 2>&1 || true
+}
+
+case "${1:-}" in
+    _list)  cmd_list ;;
+    _close) shift; cmd_close "${1:-}" ;;
+    *)      cmd_switch ;;
+esac
