@@ -25,6 +25,7 @@ focus_pane_down = ""
 # replaces it; its default key (prefix+shift+g) is lazygit's here anyway.
 new_worktree = ""
 open_worktree = "prefix+o"
+previous_workspace = "prefix+shift+6"
 
 # Pane focus left/right, but forwarded to the pane whenever it runs vim. See
 # bin/herdr-nav; the neovim side is nvim/lua/herdr.lua.
