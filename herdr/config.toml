@@ -127,9 +127,8 @@ type = "plugin_action"
 command = "jhochenbaum.hunkdiff.send-review"
 description = "hunk: send review to agent"
 
-# Plannotor-tui
 [[keys.command]]
-key = "prefix+shift+a"
+key = "prefix+shift+o"
 type = "plugin_action"
 command = "annotate.last"
 description = "review the agent's last reply"
