@@ -28,6 +28,18 @@ return {
 						},
 					},
 				},
+				pickers = {
+					-- include dotfiles (e.g. stow's .config/ trees), still respecting .gitignore
+					find_files = {
+						find_command = { "rg", "--files", "--hidden", "--glob", "!**/.git/*" },
+					},
+					live_grep = {
+						additional_args = { "--hidden", "--glob", "!**/.git/*" },
+					},
+					grep_string = {
+						additional_args = { "--hidden", "--glob", "!**/.git/*" },
+					},
+				},
 				extensions = {
 					fzf = {},
                     undo = {},
