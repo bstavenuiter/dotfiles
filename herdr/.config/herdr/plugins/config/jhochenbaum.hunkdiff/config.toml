@@ -1,0 +1,14 @@
+# hunk review defaults. Everything not listed here stays at the plugin default.
+
+[hunk]
+# Appended verbatim to every hunk launch. `--` makes hunk forward the rest to
+# git as pathspecs, so these directories never show up in a review.
+extra_args = ["--", ":(exclude)graphify-out", ":(exclude).claude"]
+
+# The plugin's default `bin = "auto"` ignores PATH and runs the hunkdiff@0.20.1
+# it vendors in node_modules, so the Homebrew hunk on PATH never gets used and
+# newer TUI features (visual line selection) are missing. Point it at the real one.
+bin = "/opt/homebrew/bin/hunk"
+
+[review]
+placement = "overlay"
