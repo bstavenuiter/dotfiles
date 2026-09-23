@@ -12,7 +12,7 @@ directory is a package whose contents mirror the tree under `$HOME`, so
 brew install stow
 git clone git@github.com:b-stavenuiter/dotfiles.git ~/code/dotfiles
 cd ~/code/dotfiles
-stow aerospace alacritty ghostty herdr nvim scripts skhd tmux yabai zsh
+stow aerospace ghostty herdr nvim scripts skhd tmux yabai zsh
 ```
 
 `.stowrc` sets `--target=~`, so no `-t` is needed. Add `-n -v` to any command to
@@ -39,4 +39,3 @@ Packages land in more than one place where that makes sense: `scripts` and the
   plugins) alongside the tracked config. Because the directory already exists,
   stow descends into it and links individual files instead of folding the whole
   tree — which is what you want. Don't let it fold.
-- `raycast/` is not stowed; it has no target.
