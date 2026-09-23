@@ -3,7 +3,7 @@ set -euo pipefail
 
 # herdr-agents — pick a herdr agent from a list and switch to it.
 #
-# Rows are ordered attention-first (blocked, done, idle, working) and, inside
+# Rows are ordered attention-first (blocked, done, working, idle) and, inside
 # each of those groups, most-recently-active first. Each row carries the
 # conversation topic (herdr's terminal title, which Claude keeps set to a short
 # summary) and the fzf preview shows the pane as it looks right now, so you can
@@ -30,8 +30,8 @@ priority_of() {
     case "$1" in
         blocked) echo 0 ;;
         done)    echo 1 ;;
-        idle)    echo 2 ;;
-        working) echo 3 ;;
+        working) echo 2 ;;
+        idle)    echo 3 ;;
         *)       echo 4 ;;
     esac
 }
