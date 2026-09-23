@@ -98,6 +98,22 @@ export ACKRC=".acrc"
 # Generate 32 chars password
 alias pass="openssl rand -base64 32 | tr -dc _A-Z-a-z-0-9 | head -c 32"
 
+# Keep ~/.homebrew/Brewfile (stowed from the dotfiles repo) in step with what is
+# actually installed, so a new machine can be rebuilt with `brew bundle install
+# --global`. Only re-dumps when the command succeeded; the dump takes ~3s, which
+# is noise next to the install it follows.
+brew() {
+  command brew "$@"
+  local ret=$?
+  if [ $ret -eq 0 ] && [ -n "$2" ]; then   # bare `brew tap` just lists; skip it
+    case "$1" in
+      install|uninstall|rm|remove|tap|untap)
+        command brew bundle dump --global --force ;;
+    esac
+  fi
+  return $ret
+}
+
 # FZF {{{1
 
  # FZF is the future. This stuff has to be after some of the Zsh stuff above. Not sure why.

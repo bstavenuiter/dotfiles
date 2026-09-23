@@ -1,3 +1,6 @@
+abbr "bbc"="brew bundle check --global --no-upgrade --verbose"
+abbr "bbd"="brew bundle dump --global --force"
+abbr "bbi"="brew bundle install --global"
 abbr "bl"="brew link"
 abbr "bs"="brew services start"
 abbr "bsl"="brew services list"

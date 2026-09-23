@@ -1,0 +1,193 @@
+tap "agavra/tap"
+tap "ankitpokhrel/jira-cli"
+tap "anomalyco/tap"
+tap "asmvik/formulae", "https://github.com/asmvik/homebrew-formulae.git"
+tap "derailed/k9s"
+tap "hashicorp/tap"
+tap "immanuwell/droast", "https://github.com/immanuwell/homebrew-droast.git"
+tap "nikitabobko/tap"
+tap "olets/tap"
+tap "plannotator/tap", trusted: true
+tap "raine/workmux"
+tap "shivammathur/extensions", trusted: { formulae: ["imap-uw", "imap@8.2"] }
+tap "shivammathur/php", trusted: { formulae: ["php@8.1"] }
+# HTTP API client for the terminal
+brew "ain"
+# Automate deployment, configuration, and upgrading
+brew "ansible"
+# Utility for connecting securely to your Cloud SQL instances
+brew "cloud-sql-proxy"
+# Dependency Manager for PHP
+brew "composer"
+# Lightweight DNS forwarder and DHCP server
+brew "dnsmasq", restart_service: :changed
+# Simple, fast and user-friendly alternative to find
+brew "fd"
+# Play, record, convert, and stream select audio and video codecs
+brew "ffmpeg"
+# Fast and simple Node.js version manager
+brew "fnm"
+# Command-line fuzzy finder written in Go
+brew "fzf"
+# Fast, simple fuzzy text selector with an advanced scoring algorithm
+brew "fzy"
+# Easily access your Google Calendar(s) from a command-line
+brew "gcalcli"
+# GNU compiler collection
+brew "gcc"
+# GitHub command-line tool
+brew "gh"
+# Syntax-highlighting pager for git and diff output
+brew "git-delta"
+# Open-source, cross-platform JavaScript runtime environment
+brew "node"
+# Run gitlab pipelines locally as shell executor or docker executor
+brew "gitlab-ci-local"
+# Open-source GitLab command-line tool
+brew "glab"
+# Make JSON greppable
+brew "gron"
+# Kubernetes package manager
+brew "helm"
+# Review-first terminal diff viewer for agent-authored changesets
+brew "hunk"
+# Feature-rich interactive Jira CLI
+brew "jira-cli"
+# Textual User Interface for interacting with Atlassian Jira from your shell
+brew "jiratui"
+# Lightweight and flexible command-line JSON processor
+brew "jq"
+# Tool that can switch between kubectl contexts easily and create aliases
+brew "kubectx"
+# Kubernetes command-line interface
+brew "kubernetes-cli"
+# Simple terminal UI for git commands
+brew "lazygit"
+# Language Server for the Lua language
+brew "lua-language-server"
+# Just-In-Time Compiler (JIT) for the Lua programming language
+brew "luajit"
+# Package manager for the Lua programming language
+brew "luarocks"
+# Open source relational database management system
+brew "mysql-client"
+# Open source relational database management system
+brew "mysql-client@8.4"
+# Open source relational database management system
+brew "mysql@8.4"
+# Incremental parsing library
+brew "tree-sitter"
+# Ambitious Vim-fork focused on extensibility and agility
+brew "neovim"
+# HTTP(S) server and reverse proxy, and IMAP/POP3 proxy server
+brew "nginx"
+# Port scanning utility for large networks
+brew "nmap"
+# Generate clients, server & docs from an OpenAPI spec (v2, v3)
+brew "openapi-generator"
+# Swiss-army knife of markup format conversion
+brew "pandoc"
+# General-purpose scripting language
+brew "php@8.1"
+# General-purpose scripting language
+brew "php@8.2"
+# General-purpose scripting language
+brew "php@8.3"
+# General-purpose scripting language
+brew "php@8.4", restart_service: :changed, link: true
+# Execute binaries from Python packages in isolated environments
+brew "pipx"
+# Runtime developer console, interactive debugger and REPL for PHP
+brew "psysh"
+# Interpreted, interactive, object-oriented programming language
+brew "python@3.12"
+# Interpreted, interactive, object-oriented programming language
+brew "python@3.13"
+# Simple and easy-to-use library to learn videogames programming
+brew "raylib"
+# Search tool like grep and The Silver Searcher
+brew "ripgrep"
+# Organize software neatly under a single directory tree (e.g. /usr/local)
+brew "stow"
+# Send macOS User Notifications from the command-line
+brew "terminal-notifier"
+# CLI tool to generate terraform files from existing infrastructure
+brew "terraformer"
+# Kubernetes YAML manifests to Terraform HCL converter
+brew "tfk8s"
+# Terminal multiplexer
+brew "tmux"
+# Parser generator tool
+brew "tree-sitter-cli"
+# Extremely fast Python package installer and resolver, written in Rust
+brew "uv"
+# Access X11 clipboards from the command-line
+brew "xclip"
+# Process YAML, JSON, XML, CSV and properties documents from the CLI
+brew "yq"
+# Feature-rich command-line audio/video downloader
+brew "yt-dlp"
+# Programming language designed for robustness, optimality, and clarity
+brew "zig"
+# UNIX shell (command interpreter)
+brew "zsh"
+# Fish-like fast/unobtrusive autosuggestions for zsh
+brew "zsh-autosuggestions"
+# Terminal UI for Code Reviews - review AI-generated diffs like a GitHub PR
+brew "agavra/tap/tuicr", trusted: true
+# Kubernetes CLI To Manage Your Clusters In Style!
+brew "derailed/k9s/k9s", trusted: true
+# Dockerfile linter with personality
+brew "immanuwell/droast/droast", trusted: true
+# Annotate Markdown in the terminal and send the review to your agent
+brew "plannotator/tap/plannotator-tui", trusted: true
+# Opinionated workflow tool that orchestrates git worktrees and tmux
+brew "raine/workmux/workmux", trusted: true
+# Imap PHP extension
+brew "shivammathur/extensions/imap@8.1", trusted: true
+# AeroSpace is an i3-like tiling window manager for macOS
+cask "nikitabobko/tap/aerospace", trusted: true
+# Database version management tool
+cask "dbngin"
+# App to build and share containerised applications and microservices
+cask "docker-desktop"
+cask "font-fira-code-nerd-font"
+# Set of tools to manage resources and applications hosted on Google Cloud
+cask "gcloud-cli"
+# Terminal emulator that uses platform-native UI and GPU acceleration
+cask "ghostty"
+# Speech to text application
+cask "handy"
+# Open-source keystroke visualiser
+cask "keycastr"
+# Interactive tool for analyzing MongoDB data
+cask "mongodb-compass"
+# Reverse proxy, secure introspectable tunnels to localhost
+cask "ngrok"
+# Control your tools with a few keystrokes
+cask "raycast"
+# Multiplayer code editor
+cask "zed"
+go "github.com/bootdotdev/bootdev"
+go "github.com/OJ/gobuster/v3"
+go "golang.org/x/tools/gopls"
+go "github.com/bstavenuiter/hellogo"
+go "github.com/laravel-ls/laravel-ls/cmd/laravel-ls"
+go "honnef.co/go/tools/cmd/staticcheck"
+cargo "gcal"
+cargo "tree-sitter-cli"
+uv "graphifyy"
+npm "@agentclientprotocol/claude-agent-acp"
+npm "@earendil-works/pi-coding-agent"
+npm "@google/gemini-cli"
+npm "@googleworkspace/cli"
+npm "@vtsls/language-server"
+npm "@vue/language-server"
+npm "corepack"
+npm "gitlab-ci-local"
+npm "intelephense"
+npm "php-debug"
+npm "tree-sitter-cli"
+npm "typescript-language-server"
+npm "typescript"
+npm "yaml-language-server"
