@@ -1,0 +1,168 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# herdr-commands — the command registry behind the palette.
+#
+# One table of what exists, one dispatch to what runs it. herdr-palette is only
+# the picker over this (see ~/.config/herdr/config.toml, prefix+ctrl+p); adding a command
+# means a line in COMMANDS and a case in run(), and it is reachable by name with
+# no key spent on it. That is the point of the palette: herdr owns the prefix
+# table, neovim owns most of what is left, and a chord you have to remember is
+# more expensive than typing four letters.
+#
+# Some of them do have a key, though, and the palette is where you find that
+# out: a command names the herdr command it is bound as, and the key is read
+# back out of config.toml when the list is built. So the palette teaches the
+# chord while you use it, and a rebind in the config shows up here by itself —
+# a key spelled out in this file would be a second place for it to be wrong.
+#
+# Anything with real logic lives in commands/ beside this file, one script per
+# group (commands/gitlab), so this stays a list you can read at a glance. The
+# one-liners that just call an existing picker stay inline — a file per line
+# would say less than the line does.
+#
+# Usable on its own, which is what makes a command testable without opening a
+# popup, and bindable directly once one turns out to be worth a key:
+#
+#   herdr-commands list            # id<TAB>display, what the palette shows
+#   herdr-commands run gitlab-mr   # run one by id
+#   herdr-commands gitlab-mr       # same, shorthand
+#
+# Commands act on the pane the popup was opened from: herdr passes its directory
+# as HERDR_ACTIVE_PANE_CWD, and $PWD covers being run straight from a shell.
+#
+# Installed with GNU stow from the repo root (`stow herdr`). Only this file is linked;
+# commands/ is reached through the repo, so a new group needs no second link:
+#
+
+# herdr popups run with a thin environment; don't rely on PATH.
+PATH="$HOME/.local/bin:/opt/homebrew/bin:$PATH"
+
+# The live config, which stow links from this repo. Overridable
+# so the key column can be tested against a fixture.
+CONFIG="${HERDR_CONFIG:-$HOME/.config/herdr/config.toml}"
+
+# commands/ sits next to this file in the repo, but ~/.local/bin/herdr-commands
+# is a symlink to it — $0's directory is the link's, so follow it first. A loop
+# rather than `readlink -f`, which only became available on macOS recently.
+self() {
+    local path="$0" dir
+    while [[ -L "$path" ]]; do
+        dir=$(cd -P "$(dirname "$path")" && pwd)
+        path=$(readlink "$path")
+        [[ "$path" == /* ]] || path="$dir/$path"
+    done
+    cd -P "$(dirname "$path")" && pwd
+}
+COMMAND_DIR="$(self)/commands"
+
+# Popups vanish the moment the command exits, so anything worth reading needs a
+# keypress to hold it on screen. Exit 0: the popup closing on a non-zero status
+# is noise, the message already said what happened.
+die() {
+    echo "herdr-commands: $1"
+    if [[ -t 0 ]]; then
+        echo "(press any key)"
+        read -r -s -n 1 || true
+    fi
+    exit 0
+}
+
+# id | label | hint | herdr command. The label is what you search in the palette,
+# the hint is the dim column beside it, and the last field is the command as
+# config.toml spells it, for the ones that also have a key — see keymap(). Empty
+# means palette-only. Order is the order the palette lists them in.
+COMMANDS=(
+    "gitlab-mr|GitLab: go to merge request|open MR for the current branch|"
+    "gitlab-mrs|GitLab: merge requests|all MRs of this project|"
+    "gitlab-pipelines|GitLab: pipelines|CI for this project|"
+    "gitlab-repo|GitLab: open repository|project home|"
+    "gitlab-branch|GitLab: open current branch|tree at HEAD's branch|"
+    "jira-ticket|Jira: open current ticket|key from the branch or folder|"
+    "laravel-app|Laravel: open app in browser|APP_URL from the nearest .env|"
+    "git-lazygit|Git: lazygit|the repo of this pane|lazygit"
+    "space-switch|Space: switch project|projects under ~/code|herdr-spaces"
+    "space-list|Space: open spaces|every space open right now|herdr-workspaces"
+    "worktree-switch|Worktree: switch|worktrees of this project|herdr-worktrees"
+    "worktree-new|Worktree: new|beside the repo's .bare|herdr-worktree"
+    "agent-switch|Agent: switch|every agent, attention first|herdr-agents"
+)
+
+# "command<TAB>key" for every [[keys.command]] in config.toml, which is where a
+# custom binding lives. Any other table ends the block, so a key and a command
+# only pair up inside one. The built-in actions under [keys] are a different
+# shape (open_worktree = "prefix+o") and nothing in the registry runs one, so
+# they are left alone.
+keymap() {
+    [[ -r "$CONFIG" ]] || return 0
+    awk '
+        function value(s) {
+            match(s, /"[^"]*"/)
+            return RSTART ? substr(s, RSTART + 1, RLENGTH - 2) : ""
+        }
+        /^[[:space:]]*\[/                   { key = ""; command = ""; next }
+        /^[[:space:]]*key[[:space:]]*=/     { key = value($0) }
+        /^[[:space:]]*command[[:space:]]*=/ { command = value($0) }
+        key != "" && command != ""          { print command "\t" key; key = ""; command = "" }
+    ' "$CONFIG"
+}
+
+# The key bound to command $1 in the keymap $2, or nothing. A read loop rather
+# than an associative array: macOS still ships bash 3.2.
+lookup() {
+    local command key
+    while IFS=$'\t' read -r command key; do
+        [[ "$command" == "$1" ]] && { printf '%s' "$key"; return 0; }
+    done <<<"$2"
+}
+
+# Run a script from commands/ — the half of the registry that is not a one-liner.
+group() {
+    local script="$COMMAND_DIR/$1"
+    shift
+    [[ -x "$script" ]] || die "missing command script: $script"
+    "$script" "$@"
+}
+
+run() {
+    case "$1" in
+        gitlab-mr)        group gitlab mr ;;
+        gitlab-mrs)       group gitlab mrs ;;
+        gitlab-pipelines) group gitlab pipelines ;;
+        gitlab-repo)      group gitlab repo ;;
+        gitlab-branch)    group gitlab branch ;;
+        jira-ticket)      group jira ticket ;;
+        laravel-app)      group laravel app ;;
+        git-lazygit)      lazygit ;;
+        space-switch)     herdr-spaces ;;
+        space-list)       herdr-workspaces ;;
+        worktree-switch)  herdr-worktrees ;;
+        worktree-new)     herdr-worktree ;;
+        agent-switch)     herdr-agents ;;
+        *)                die "unknown command: $1" ;;
+    esac
+}
+
+# "id<TAB>display" per command. Padding lives inside the display field: fzf
+# joins --with-nth fields with the delimiter, so a tab between the columns would
+# fight the alignment. The key column is trimmed off the end when there is none,
+# so an unbound command carries no trailing run of spaces.
+list() {
+    local keys entry id label hint bind display
+    keys=$(keymap)
+    for entry in "${COMMANDS[@]}"; do
+        IFS='|' read -r id label hint bind <<<"$entry"
+        display=$(printf '%-36s %-32s %s' "$label" "$hint" "$(lookup "$bind" "$keys")")
+        printf '%s\t%s\n' "$id" "${display%"${display##*[![:space:]]}"}"
+    done
+}
+
+main() {
+    case "${1:-list}" in
+        list) list ;;
+        run)  [[ $# -ge 2 ]] || die "run needs a command id"; run "$2" ;;
+        *)    run "$1" ;;
+    esac
+}
+
+main "$@"

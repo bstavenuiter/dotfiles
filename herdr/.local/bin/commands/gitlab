@@ -1,0 +1,143 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# commands/gitlab — GitLab pages for the repo the pane sits in.
+#
+# The shell half of nvim/local/gitlab.nvim: the same URLs, reachable without a
+# neovim buffer open. `mr` is the one that matters — the counterpart of the
+# plugin's <leader>glm: it goes to the open merge request for the current
+# branch, not to a list you then have to pick from.
+#
+# The plugin can only guess ("merge_requests?source_branch=X"), because a URL is
+# all it builds. Here the API answers first: with a token, the branch's open MR
+# is resolved to its real web_url and opened directly. Without one — or when the
+# branch has no MR yet — it falls back to that filtered list, which is the same
+# page the plugin opens and still shows the right thing.
+#
+# Run through the palette (prefix+ctrl+p) or by hand:
+#
+#   herdr-commands gitlab-mr
+#   ~/code/dotfiles/herdr/.local/bin/commands/gitlab mr [dir]
+#
+# Nothing here is installed into ~/.local/bin; herdr-commands finds it beside
+# itself through the repo, so the whole group is one file to add or delete.
+
+# herdr popups run with a thin environment; don't rely on PATH.
+PATH="/opt/homebrew/bin:$PATH"
+
+# Popups vanish the moment the command exits, so anything worth reading needs a
+# keypress to hold it on screen. Exit 0: the popup closing on a non-zero status
+# is noise, the message already said what happened.
+die() {
+    echo "gitlab: $1"
+    if [[ -t 0 ]]; then
+        echo "(press any key)"
+        read -r -s -n 1 || true
+    fi
+    exit 0
+}
+
+git_in() { git -C "$DIR" "$@" 2>/dev/null; }
+
+require_repo() {
+    [[ "$(git_in rev-parse --is-inside-work-tree)" == "true" ]] \
+        || die "not inside a git repository: $DIR"
+}
+
+# The token lives in ~/.zsh_env_vars, which only an interactive shell sources.
+load_token() {
+    [[ -n "${GITLAB_TOKEN:-}" ]] && return 0
+    [[ -r "$HOME/.zsh_env_vars" ]] || return 0
+    GITLAB_TOKEN=$(
+        # shellcheck disable=SC1091
+        . "$HOME/.zsh_env_vars" >/dev/null 2>&1
+        printf '%s' "${GITLAB_TOKEN:-}"
+    ) || GITLAB_TOKEN=""
+    export GITLAB_TOKEN
+}
+
+# host and group/project out of origin, for both remote spellings:
+#   git@gitlab.example.com:group/project.git
+#   https://gitlab.example.com/group/project.git
+#
+# The host comes from the remote rather than GITLAB_HOST: a repo on a second
+# GitLab instance should open on its own instance, and the remote always knows.
+parse_remote() {
+    local remote
+    remote=$(git_in remote get-url origin) || die "no git remote 'origin'"
+
+    if [[ "$remote" =~ ^(ssh://)?git@([^:/]+)[:/](.+)$ ]]; then
+        HOST="${BASH_REMATCH[2]}"
+        PROJECT="${BASH_REMATCH[3]}"
+    elif [[ "$remote" =~ ^https?://([^/]+)/(.+)$ ]]; then
+        HOST="${BASH_REMATCH[1]}"
+        PROJECT="${BASH_REMATCH[2]}"
+    else
+        die "could not parse remote URL: $remote"
+    fi
+
+    PROJECT="${PROJECT%.git}"
+    BASE="https://$HOST/$PROJECT"
+}
+
+current_branch() {
+    local b
+    b=$(git_in rev-parse --abbrev-ref HEAD) || die "not a git repository"
+    [[ "$b" != "HEAD" ]] || die "detached HEAD — cannot determine branch"
+    printf '%s' "$b"
+}
+
+# web_url of the open MR whose source branch is $1, or empty. Quiet on every
+# failure — no token, no network, no MR — because the caller has a fallback that
+# works in all of those cases.
+open_mr_url() {
+    [[ -n "${GITLAB_TOKEN:-}" ]] || return 0
+
+    curl --silent --fail --max-time 5 \
+        --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
+        --get \
+        --data-urlencode "source_branch=$1" \
+        --data "state=opened" \
+        --data "per_page=1" \
+        "https://$HOST/api/v4/projects/$(printf '%s' "$PROJECT" | jq -sRr @uri)/merge_requests" \
+        2>/dev/null \
+        | jq -r 'if type == "array" then (.[0].web_url // empty) else empty end' \
+          2>/dev/null || true
+}
+
+open_url() {
+    [[ -n "$1" ]] || return 0
+    open "$1" >/dev/null 2>&1 || die "could not open $1"
+}
+
+mr() {
+    local branch url
+    branch=$(current_branch)
+    load_token
+    url=$(open_mr_url "$branch")
+
+    # No open MR (or no token): the filtered list, which offers to create one
+    # and still shows a closed or merged MR for the branch.
+    [[ -n "$url" ]] \
+        || url="$BASE/-/merge_requests?scope=all&state=opened&source_branch=$branch"
+    open_url "$url"
+}
+
+main() {
+    local action="${1:-mr}"
+    DIR="${2:-${HERDR_ACTIVE_PANE_CWD:-$PWD}}"
+
+    require_repo
+    parse_remote
+
+    case "$action" in
+        mr)        mr ;;
+        mrs)       open_url "$BASE/-/merge_requests" ;;
+        repo)      open_url "$BASE" ;;
+        pipelines) open_url "$BASE/-/pipelines" ;;
+        branch)    open_url "$BASE/-/tree/$(current_branch)" ;;
+        *)         die "unknown action: $action (mr|mrs|repo|pipelines|branch)" ;;
+    esac
+}
+
+main "$@"

@@ -22,12 +22,10 @@ set -euo pipefail
 # session from its own list.
 #
 # Launched from a herdr popup bound to prefix + ctrl + j, beside the prefix + j
-# that picks a project (see ../config.toml). The _list and _close subcommands
+# that picks a project (see ~/.config/herdr/config.toml). The _list and _close subcommands
 # are internal, called back by fzf.
 #
-# Installed by hand, like the rest of this repo:
-#
-#   ln -s ~/code/dotfiles/herdr/bin/herdr-workspaces ~/.local/bin/herdr-workspaces
+# Installed with GNU stow from the repo root: `stow herdr`.
 
 # herdr popups run with a thin environment; don't rely on PATH.
 PATH="/opt/homebrew/bin:$PATH"

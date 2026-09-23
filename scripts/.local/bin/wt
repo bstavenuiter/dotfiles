@@ -78,7 +78,7 @@ if tmux list-windows -t "=$session" -F '#{window_name}' 2>/dev/null | grep -qx "
     tmux select-window -t "=$session:$window"
 else
     tmux new-window -t "=$session" -n "$window" -c "$selected" \
-        "nvim \"+lua require('wt').start()\""
+        "nvim \"+lua require('wt').start()\"; exec \$SHELL"
 fi
 
 # Focus it.

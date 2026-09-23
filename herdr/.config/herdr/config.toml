@@ -28,7 +28,7 @@ open_worktree = "prefix+o"
 previous_workspace = "prefix+shift+6"
 
 # Pane focus left/right, but forwarded to the pane whenever it runs vim. See
-# bin/herdr-nav; the neovim side is nvim/lua/herdr.lua.
+# .local/bin/herdr-nav; the neovim side is nvim/.config/nvim/lua/herdr.lua.
 [[keys.command]]
 key = "ctrl+h"
 type = "shell"
@@ -61,7 +61,7 @@ width = "90%"
 height = "90%"
 
 # Space picker: the projects under ~/code, jumping to the space already rooted
-# in the one you pick or creating it there. Mirrors tmux prefix + C-j (tmux/t).
+# in the one you pick or creating it there. Mirrors tmux prefix + C-j (scripts/.local/bin/t).
 [[keys.command]]
 key = "prefix+j"
 type = "popup"
@@ -104,6 +104,18 @@ command = "herdr-worktrees"
 description = "Switch worktree"
 width = "70%"
 height = "70%"
+
+# Command palette: VS Code's ctrl + shift + p. Keys are the scarce thing — herdr
+# owns the prefix table and neovim owns most of what is left — so anything that
+# does not earn a chord lives in bin/herdr-commands and is searched by name
+# here. prefix + ctrl + p is free in herdr's defaults and in everything above.
+[[keys.command]]
+key = "prefix+ctrl+p"
+type = "popup"
+command = "herdr-palette"
+description = "Command palette"
+width = "60%"
+height = "60%"
 
 [ui]
 agent_panel_sort = "spaces"

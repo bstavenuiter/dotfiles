@@ -422,36 +422,42 @@ local function todays_status_transition(key, account_id, today)
     return nil
 end
 
--- offset is a day offset: 0 = today, -1 = yesterday, etc.
-local function JiraWorkedOn(offset)
+-- Resolve a day offset (0 = today, -1 = yesterday) to a YYYY-MM-DD date.
+local function offset_date(offset)
+    local target = os.date("*t")
+    target.day = target.day + (offset or 0)
+    return os.date("%Y-%m-%d", os.time(target))
+end
+M.offset_date = offset_date
+
+-- Jira tickets assigned to me that I updated on the given day offset.
+-- Returns a list of { key, summary, url, transition }.
+M.worked_on = function(offset)
     offset = offset or 0
     local day_arg = offset == 0 and "" or tostring(offset)
     local jql = string.format(
         "assignee = currentUser() AND updated >= startOfDay(%s) AND updated <= endOfDay(%s) ORDER BY updated DESC",
         day_arg, day_arg)
     local results = M.search(jql, { maxResults = 50 }).items
-
-    local target = os.date("*t")
-    target.day = target.day + offset
-    local target_date = os.date("%Y-%m-%d", os.time(target))
-
-    if #results == 0 then
-        vim.notify("No Jira tickets worked on " .. target_date, vim.log.levels.INFO)
-        return
-    end
-
+    local target_date = offset_date(offset)
     local account_id = get_my_account_id()
 
-    local lines = {}
+    local items = {}
     for _, issue in ipairs(results) do
-        local link = string.format("[%s](%s)", issue.summary, M.get_browse_url(issue.key))
-        local transition = account_id and todays_status_transition(issue.key, account_id, target_date)
-        if transition then
-            table.insert(lines, string.format("- [X] WORK ON: %s (%s)", link, transition))
-        else
-            table.insert(lines, string.format("- [X] WORK ON: %s", link))
-        end
+        table.insert(items, {
+            key = issue.key,
+            summary = issue.summary,
+            url = M.get_browse_url(issue.key),
+            transition = account_id and todays_status_transition(issue.key, account_id, target_date) or nil,
+        })
     end
+    return items
+end
+
+-- Insert todo lines under a `## YYYY-MM-DD` header in the current buffer,
+-- creating the header in sorted position if it doesn't exist.
+M.insert_worklines = function(lines, target_date)
+    if #lines == 0 then return end
 
     local file_lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
     local header = "## " .. target_date
@@ -490,6 +496,30 @@ local function JiraWorkedOn(offset)
     end
 
     vim.api.nvim_buf_set_lines(0, 0, -1, false, file_lines)
+end
+
+-- offset is a day offset: 0 = today, -1 = yesterday, etc.
+local function JiraWorkedOn(offset)
+    offset = offset or 0
+    local items = M.worked_on(offset)
+    local target_date = offset_date(offset)
+
+    if #items == 0 then
+        vim.notify("No Jira tickets worked on " .. target_date, vim.log.levels.INFO)
+        return
+    end
+
+    local lines = {}
+    for _, issue in ipairs(items) do
+        local link = string.format("[%s](%s)", issue.summary, issue.url)
+        if issue.transition then
+            table.insert(lines, string.format("- [X] WORK ON: %s (%s)", link, issue.transition))
+        else
+            table.insert(lines, string.format("- [X] WORK ON: %s", link))
+        end
+    end
+
+    M.insert_worklines(lines, target_date)
     vim.notify(string.format("Added %d Jira tickets worked on %s", #lines, target_date), vim.log.levels.INFO)
 end
 

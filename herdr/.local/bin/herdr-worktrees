@@ -25,11 +25,9 @@ set -euo pipefail
 # this work from any space of the project.
 #
 # Launched from a herdr popup bound to prefix + ctrl + o, beside the
-# prefix + ctrl + w that creates one (see ../config.toml).
+# prefix + ctrl + w that creates one (see ~/.config/herdr/config.toml).
 #
-# Installed by hand, like the rest of this repo:
-#
-#   ln -s ~/code/dotfiles/herdr/bin/herdr-worktrees ~/.local/bin/herdr-worktrees
+# Installed with GNU stow from the repo root: `stow herdr`.
 
 # herdr popups run with a thin environment; don't rely on PATH.
 PATH="/opt/homebrew/bin:$PATH"

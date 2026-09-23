@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+if [ -z "$*" ]; then
+  echo "Usage: ask <description of what you want to do>"
+  exit 1
+fi
+
+# Build JSON payload safely
+payload=$(jq -n --arg prompt "$*" --arg system \
+  "You are a command-line assistant. Output ONLY the exact shell command. No explanation, no reasoning, no markdown, no code blocks, no backticks. Just the raw command." \
+  '{ model: "gemma4", prompt: $prompt, system: $system, stream: false }')
+
+# Get command suggestion
+raw=$(curl -s http://localhost:11434/api/generate -d "$payload" | jq -r '.response')
+
+# Strip thinking tags, code fences, and whitespace
+cmd=$(echo "$raw" | perl -0777 -pe 's/<think>.*?<\/think>\s*//gs; s/^```\w*\n?//gm; s/^```\s*$//gm; s/^\s+|\s+$//g')
+
+echo "$cmd"
+read -rp "[R]un / [A]djust / [C]ancel? " choice
+
+case "$choice" in
+  r|R)
+    eval "$cmd"
+    ;;
+  a|A)
+    read -re -i "$cmd" -p "Command: " adjusted
+    eval "$adjusted"
+    ;;
+  *)
+    echo "Cancelled."
+    ;;
+esac

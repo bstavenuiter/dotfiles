@@ -3,8 +3,10 @@ local M = {}
 function M.setup()
     vim.api.nvim_create_user_command("CalendarToday", function()
         local today = os.date("%Y-%m-%d")
-        local time_min = today .. "T00:00:00+01:00"
-        local time_max = today .. "T23:59:59+01:00"
+        -- os.date("%z") gives "+0200"; RFC3339 wants "+02:00"
+        local offset = (os.date("%z"):gsub("(%d%d)(%d%d)$", "%1:%2"))
+        local time_min = today .. "T00:00:00" .. offset
+        local time_max = today .. "T23:59:59" .. offset
         local cmd = string.format(
             'gws calendar events list --params \'{"calendarId":"primary","timeMin":"%s","timeMax":"%s","singleEvents":true,"orderBy":"startTime"}\'',
             time_min,
@@ -16,8 +18,16 @@ function M.setup()
             on_stdout = function(_, data)
                 local json_str = table.concat(data, "\n")
                 local ok, parsed = pcall(vim.json.decode, json_str)
-                if not ok or not parsed or not parsed.items then
-                    vim.notify("Failed to parse calendar events", vim.log.levels.ERROR)
+                if not ok then
+                    vim.notify("Failed to parse calendar events: " .. json_str, vim.log.levels.ERROR)
+                    return
+                end
+                if parsed and parsed.error then
+                    vim.notify("gws: " .. (parsed.error.message or "unknown error"), vim.log.levels.ERROR)
+                    return
+                end
+                if not parsed or not parsed.items then
+                    vim.notify("Failed to parse calendar events: " .. json_str, vim.log.levels.ERROR)
                     return
                 end
 

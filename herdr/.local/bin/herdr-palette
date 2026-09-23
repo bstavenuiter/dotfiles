@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# herdr-palette — the command palette, VS Code's ctrl + shift + p for herdr.
+#
+# Keys are the scarce thing here: herdr owns the prefix table, neovim owns most
+# of what is left, and every new action costs a chord that has to be remembered.
+# The palette is the way out — one key (prefix + ctrl + p) opens a searchable
+# list, and anything added to the registry is reachable by typing a few letters
+# of its name. No binding, no collision, nothing to memorise.
+#
+# Nothing but the picker lives here: the commands are herdr-commands, which
+# lists them and runs them. They run inside this popup, so anything interactive
+# (fzf, a prompt) just works, and anything that only fires a side effect — the
+# GitLab ones open a browser — returns you to the pane immediately.
+#
+# Launched from a herdr popup bound to prefix + ctrl + p (see ~/.config/herdr/config.toml).
+#
+# Installed with GNU stow from the repo root: `stow herdr`.
+
+# herdr popups run with a thin environment; don't rely on PATH.
+PATH="$HOME/.local/bin:/opt/homebrew/bin:$PATH"
+
+main() {
+    local selection id
+    selection=$(herdr-commands list | fzf \
+        --layout=reverse \
+        --delimiter=$'\t' \
+        --with-nth=2 \
+        --prompt="> " \
+        --header="enter: run command") || exit 0
+    [[ -n "$selection" ]] || exit 0
+
+    id=$(cut -f1 <<<"$selection")
+    [[ -n "$id" ]] || exit 0
+
+    herdr-commands run "$id"
+}
+
+main "$@"

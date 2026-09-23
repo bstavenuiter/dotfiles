@@ -88,8 +88,9 @@ vim.keymap.set("x", "<C-j>", ":m '>+1<cr>gv=gv", { desc = "Move selected text do
 vim.keymap.set("x", "<C-k>", ":m '<-2<cr>gv=gv", { desc = "Move selected text up"})
 
 -- quick keys to move to another window the vim way
-vim.keymap.set({"n","t"}, "<C-h>", "<C-w><C-h>", { desc = "Move focus to the left window" })
-vim.keymap.set({"n","t"}, "<C-l>", "<C-w><C-l>", { desc = "Move focus to the right window" })
+-- h and l continue into the herdr pane next door once vim runs out of windows
+vim.keymap.set({"n","t"}, "<C-h>", function() require("herdr").move("h") end, { desc = "Move focus to the left window" })
+vim.keymap.set({"n","t"}, "<C-l>", function() require("herdr").move("l") end, { desc = "Move focus to the right window" })
 vim.keymap.set({"n","t"}, "<C-j>", "<C-w><C-j>", { desc = "Move focus to the lower window" })
 vim.keymap.set({"n","t"}, "<C-k>", "<C-w><C-k>", { desc = "Move focus to the upper window" })
 
@@ -98,7 +99,7 @@ vim.keymap.set({"n", "t"}, "<C-A-h>", "<cmd>vertical resize -5<cr>", { desc = "D
 vim.keymap.set({"n", "t"}, "<C-A-l>", "<cmd>vertical resize +5<cr>", { desc = "Increase window width" })
 
 -- open current file in Browser
-vim.keymap.set("n", "<leader>bo", '<cmd>silent !open -a "Brave Browser" "%:p"<CR>')
+vim.keymap.set("n", "<leader>bo", '<cmd>silent !open -a "Helium" "%:p"<CR>')
 
 -- open the current Laravel app URL (APP_URL from .env) in the default browser
 vim.keymap.set("n", "<leader>ba", function()
@@ -169,6 +170,11 @@ vim.keymap.set('n', '<leader>tic', function() require("php-tinker").close_split(
 vim.cmd.packadd("nvim.undotree")
 vim.cmd.packadd("nvim.difftool")
 
+vim.keymap.set('n', '<leader>ll', function()
+  vim.o.background = vim.o.background == "dark" and "light" or "dark"
+end, { desc = 'Toggle light/dark background' })
 
 -- 0.12 introduced 'fuzzy' to completeopt and a dedicated 'autocomplete' toggle.
 vim.opt.completeopt = { "menuone", "noselect", "fuzzy" }
+
+vim.cmd("colorscheme bamboo")

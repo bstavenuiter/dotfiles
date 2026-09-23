@@ -1,4 +1,4 @@
--- wt — neovim side of the worktree workspace launcher (see ~/code/dotfiles/tmux/wt).
+-- wt — neovim side of the worktree workspace launcher (see ~/code/dotfiles/scripts/.local/bin/wt).
 --
 -- Called once, at startup, by `nvim "+lua require('wt').start()"`. Drives the
 -- editor into the working state:

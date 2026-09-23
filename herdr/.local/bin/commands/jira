@@ -1,0 +1,110 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# commands/jira — the Jira ticket the pane is working on.
+#
+# The key is never typed: it is already in the branch name
+# (feature/SHR-3695-csv-download) or in the worktree folder
+# (~/code/sherlock-laravel/shr-3695.sherlock), which is how both are named here.
+# Branch first, folder second — when the two disagree the branch is what is
+# actually checked out, and a worktree sitting on main still opens the ticket
+# its folder is named after.
+#
+# The folder is searched upward rather than just at the pane's directory: panes
+# sit deep inside a worktree as often as at its root.
+#
+# Run through the palette (prefix+ctrl+p) or by hand:
+#
+#   herdr-commands jira-ticket
+#   ~/code/dotfiles/herdr/.local/bin/commands/jira ticket [dir]
+#
+# Nothing here is installed into ~/.local/bin; herdr-commands finds it beside
+# itself through the repo, so the whole group is one file to add or delete.
+
+# herdr popups run with a thin environment; don't rely on PATH.
+PATH="/opt/homebrew/bin:$PATH"
+
+# Popups vanish the moment the command exits, so anything worth reading needs a
+# keypress to hold it on screen. Exit 0: the popup closing on a non-zero status
+# is noise, the message already said what happened.
+die() {
+    echo "jira: $1"
+    if [[ -t 0 ]]; then
+        echo "(press any key)"
+        read -r -s -n 1 || true
+    fi
+    exit 0
+}
+
+# The server lives in ~/.zsh_env_vars, which only an interactive shell sources.
+# Same variable jira.nvim reads (see ../../../nvim/local/jira.nvim), so both
+# halves follow one setting.
+load_server() {
+    [[ -n "${JIRA_SERVER:-}" ]] && return 0
+    [[ -r "$HOME/.zsh_env_vars" ]] || return 0
+    JIRA_SERVER=$(
+        # shellcheck disable=SC1091
+        . "$HOME/.zsh_env_vars" >/dev/null 2>&1
+        printf '%s' "${JIRA_SERVER:-}"
+    ) || JIRA_SERVER=""
+    export JIRA_SERVER
+}
+
+# The first key in $1, uppercased, or empty: letters then digits, so SHR-3695,
+# AI-88 and DOOZER-2389 all read. Case-insensitive because the folders here are
+# lowercase and the branches are not.
+#
+# Nothing in the shape tells a key apart from a branch like "release-2", which
+# would read as one. Left as is: no branch or folder under ~/code looks like
+# that, and a key that does not exist opens a Jira page saying so — the failure
+# is visible, not a different ticket.
+key_in() {
+    [[ "$1" =~ ([A-Za-z][A-Za-z0-9]+-[0-9]+) ]] || return 0
+    printf '%s' "${BASH_REMATCH[1]}" | tr '[:lower:]' '[:upper:]'
+}
+
+# The key in the branch HEAD is on, or empty. A detached HEAD and a directory
+# that is not a repository both simply have nothing to say here — the folder is
+# asked next either way.
+key_from_branch() {
+    local branch
+    branch=$(git -C "$DIR" rev-parse --abbrev-ref HEAD 2>/dev/null) || return 0
+    [[ "$branch" != "HEAD" ]] || return 0
+    key_in "$branch"
+}
+
+# The key in the nearest directory named after one, walking up from $DIR.
+key_from_path() {
+    local dir="$DIR" key
+    while true; do
+        key=$(key_in "${dir##*/}")
+        [[ -n "$key" ]] && { printf '%s' "$key"; return 0; }
+        [[ "$dir" == "/" ]] && return 0
+        dir=$(dirname "$dir")
+    done
+}
+
+ticket() {
+    local key url
+    key=$(key_from_branch)
+    [[ -n "$key" ]] || key=$(key_from_path)
+    [[ -n "$key" ]] || die "no ticket in the branch or path at $DIR"
+
+    load_server
+    [[ -n "${JIRA_SERVER:-}" ]] || die "JIRA_SERVER is not set"
+
+    url="${JIRA_SERVER%/}/browse/$key"
+    open "$url" >/dev/null 2>&1 || die "could not open $url"
+}
+
+main() {
+    local action="${1:-ticket}"
+    DIR="${2:-${HERDR_ACTIVE_PANE_CWD:-$PWD}}"
+
+    case "$action" in
+        ticket) ticket ;;
+        *)      die "unknown action: $action (ticket)" ;;
+    esac
+}
+
+main "$@"

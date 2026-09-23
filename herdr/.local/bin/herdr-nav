@@ -5,7 +5,7 @@
 # when the focused pane is running vim the key is injected into the pane and
 # neovim moves its own split, otherwise herdr moves the pane focus.
 #
-# The other half lives in nvim/lua/herdr.lua, which hands the move back to
+# The other half lives in nvim/.config/nvim/lua/herdr.lua, which hands the move back to
 # herdr once neovim runs out of splits in that direction.
 #
 #   herdr-nav left ctrl+h
@@ -16,9 +16,7 @@
 # free — against ~11ms for one zsh process. The CLI is kept as a fallback for
 # when the socket cannot be opened.
 #
-# Installed by hand, like the rest of this repo:
-#
-#   ln -s ~/code/dotfiles/herdr/bin/herdr-nav ~/.local/bin/herdr-nav
+# Installed with GNU stow from the repo root: `stow herdr`.
 
 emulate -L zsh
 

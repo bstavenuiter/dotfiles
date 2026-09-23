@@ -3,6 +3,7 @@ return {
         "gitlab",
         dir = vim.fn.stdpath("config") .. "/local/gitlab.nvim",
         name = "gitlab",
+        dependencies = { "nvim-lua/plenary.nvim" },
         cmd = { "GitlabMR", "GitlabRepo", "GitlabMRs", "GitlabPipeline", "GitlabVariables", "GitlabTags", "GitlabFile" },
         keys = {
             { "<leader>glm", "<cmd>GitlabMR<CR>", desc = "GitLab: current MR" },

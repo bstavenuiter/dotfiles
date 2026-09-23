@@ -1,0 +1,50 @@
+diff --git a/lua/review/hooks.lua b/lua/review/hooks.lua
+index a059507..6c320d5 100644
+--- a/lua/review/hooks.lua
++++ b/lua/review/hooks.lua
+@@ -33,6 +33,21 @@ function M.get_current_tabpage()
+   return current_tabpage
+ end
+ 
++---codediff >= 2.50 returns typed Path tables from get_paths(); older versions
++---returned plain strings.
++---@param p string|table|nil
++---@return string|nil
++local function path_str(p)
++  if type(p) == "table" then
++    local abs = p.absolute
++    if abs == nil or abs == "" then
++      return nil
++    end
++    return abs
++  end
++  return p
++end
++
+ ---@return table|nil codediff lifecycle module
+ local function get_lifecycle()
+   local ok, lifecycle = pcall(require, "codediff.ui.lifecycle")
+@@ -90,6 +105,7 @@ function M.get_cursor_position()
+ 
+   -- Get paths from session
+   local orig_path, mod_path = lifecycle.get_paths(current_tabpage)
++  orig_path, mod_path = path_str(orig_path), path_str(mod_path)
+   local orig_buf, mod_buf = lifecycle.get_buffers(current_tabpage)
+ 
+   -- Determine which file we're on based on buffer
+@@ -158,6 +174,7 @@ function M.get_paths()
+     return nil, nil
+   end
+   local orig_path, mod_path = lifecycle.get_paths(current_tabpage)
++  orig_path, mod_path = path_str(orig_path), path_str(mod_path)
+   return relativize_path(orig_path, lifecycle, current_tabpage),
+     relativize_path(mod_path, lifecycle, current_tabpage)
+ end
+@@ -175,6 +192,7 @@ function M.on_session_created(tabpage)
+ 
+   -- Set filetype for syntax highlighting (needed for commit reviews)
+   local raw_orig_path, raw_mod_path = lifecycle.get_paths(tabpage)
++  raw_orig_path, raw_mod_path = path_str(raw_orig_path), path_str(raw_mod_path)
+   set_buffer_filetype(orig_buf, raw_orig_path)
+   set_buffer_filetype(mod_buf, raw_mod_path)
+ 

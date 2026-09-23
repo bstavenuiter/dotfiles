@@ -1,5 +1,7 @@
 local M = {}
 
+local curl = require("plenary.curl")
+
 local function git(dir, cmd)
     local result = vim.fn.system("git -C " .. vim.fn.shellescape(dir) .. " " .. cmd)
     if vim.v.shell_error ~= 0 then
@@ -81,6 +83,106 @@ local function open(url)
     if url then
         vim.ui.open(url)
     end
+end
+
+-- Authenticated GET against the GitLab REST API. Returns decoded JSON or nil.
+local function api_get(path, query)
+    local host = (M._config and M._config.host) or os.getenv("GITLAB_HOST") or ""
+    if host == "" then
+        vim.notify("GITLAB_HOST not set", vim.log.levels.WARN)
+        return nil
+    end
+    local token = os.getenv("GITLAB_TOKEN")
+    if not token or token == "" then
+        vim.notify("GITLAB_TOKEN not set", vim.log.levels.WARN)
+        return nil
+    end
+    local res = curl.get("https://" .. host .. "/api/v4/" .. path, {
+        headers = { ["PRIVATE-TOKEN"] = token },
+        query = query,
+    })
+    if not res or res.status < 200 or res.status >= 300 then
+        return nil
+    end
+    return vim.json.decode(res.body)
+end
+
+-- The three date strings the events API needs for a single day. `after` and
+-- `before` are exclusive, so they bracket the target day on either side.
+local function day_window(offset)
+    local target = os.date("*t")
+    target.day = target.day + (offset or 0)
+    local t = os.time(target)
+    return os.date("%Y-%m-%d", t),
+        os.date("%Y-%m-%d", t - 86400),
+        os.date("%Y-%m-%d", t + 86400)
+end
+
+-- First JIRA-style key (e.g. SHR-3278) found in a title, or nil.
+local function ticket_of(title)
+    return title and title:match("([A-Z][A-Z]+%-%d+)")
+end
+
+local ACTION_LABELS = {
+    ["accepted"] = "merged",
+    ["approved"] = "approved",
+    ["closed"] = "closed",
+    ["opened"] = "opened",
+    ["commented on"] = "commented",
+    ["pushed to"] = "pushed",
+}
+
+-- Merge requests I acted on during the given day offset (0 = today, -1 =
+-- yesterday). Each item is classified by authorship: "work" if I authored the
+-- MR, "review" otherwise. Returns { ticket, title, url, ref, state, category,
+-- actions }.
+M.worked_on = function(offset)
+    local _, after, before = day_window(offset)
+    local events = api_get("events", { after = after, before = before, per_page = 100 })
+    if not events then return {} end
+
+    local me = api_get("user")
+    me = me and me.username
+
+    -- Group events by merge request, collecting the distinct actions I took.
+    local mrs, order = {}, {}
+    for _, ev in ipairs(events) do
+        local pid, iid
+        if ev.target_type == "MergeRequest" then
+            pid, iid = ev.project_id, ev.target_iid
+        elseif ev.note and ev.note.noteable_type == "MergeRequest" then
+            pid, iid = ev.project_id, ev.note.noteable_iid
+        end
+        if pid and iid then
+            local key = pid .. ":" .. iid
+            if not mrs[key] then
+                mrs[key] = { pid = pid, iid = iid, actions = {} }
+                table.insert(order, key)
+            end
+            mrs[key].actions[ACTION_LABELS[ev.action_name] or ev.action_name] = true
+        end
+    end
+
+    local items = {}
+    for _, key in ipairs(order) do
+        local mr = mrs[key]
+        local detail = api_get(string.format("projects/%d/merge_requests/%d", mr.pid, mr.iid))
+        if detail then
+            local actions = {}
+            for a in pairs(mr.actions) do table.insert(actions, a) end
+            table.sort(actions)
+            table.insert(items, {
+                ticket = ticket_of(detail.title),
+                title = detail.title,
+                url = detail.web_url,
+                ref = (detail.references and detail.references.short) or ("!" .. mr.iid),
+                state = detail.state,
+                category = (me and detail.author and detail.author.username == me) and "work" or "review",
+                actions = table.concat(actions, ", "),
+            })
+        end
+    end
+    return items
 end
 
 local commands = {

@@ -26,11 +26,9 @@ set -euo pipefail
 # get bare leaf names.
 #
 # Launched from a herdr popup bound to prefix + ctrl + w, mirroring the tmux
-# binding for wt (see ../config.toml).
+# binding for wt (see ~/.config/herdr/config.toml).
 #
-# Installed by hand, like the rest of this repo:
-#
-#   ln -s ~/code/dotfiles/herdr/bin/herdr-worktree ~/.local/bin/herdr-worktree
+# Installed with GNU stow from the repo root: `stow herdr`.
 
 # herdr popups run with a thin environment; don't rely on PATH.
 PATH="/opt/homebrew/bin:$PATH"

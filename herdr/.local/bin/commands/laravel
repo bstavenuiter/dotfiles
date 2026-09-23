@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# commands/laravel — the Laravel app the pane sits in.
+#
+# The shell half of neovim's <leader>ba (see nvim/.config/nvim/init.lua in this repo): find the
+# nearest .env walking up from the pane's directory, read APP_URL out of it, and
+# hand that to the browser. Same answer, without needing a buffer open — and it
+# works from the shell pane, where you are when the thing you just changed is a
+# route or a queue worker rather than a file.
+#
+# .env rather than a guess from the directory name: it is what the app itself
+# resolves URLs against, so a project on a custom domain or a non-default port
+# opens where it actually runs.
+#
+# Run through the palette (prefix+ctrl+p) or by hand:
+#
+#   herdr-commands laravel-app
+#   ~/code/dotfiles/herdr/.local/bin/commands/laravel app [dir]
+#
+# Nothing here is installed into ~/.local/bin; herdr-commands finds it beside
+# itself through the repo, so the whole group is one file to add or delete.
+
+# herdr popups run with a thin environment; don't rely on PATH.
+PATH="/opt/homebrew/bin:$PATH"
+
+# Popups vanish the moment the command exits, so anything worth reading needs a
+# keypress to hold it on screen. Exit 0: the popup closing on a non-zero status
+# is noise, the message already said what happened.
+die() {
+    echo "laravel: $1"
+    if [[ -t 0 ]]; then
+        echo "(press any key)"
+        read -r -s -n 1 || true
+    fi
+    exit 0
+}
+
+# Nearest .env at or above $DIR, or empty. Upward rather than $DIR/.env: panes
+# sit deep in a project as often as at its root.
+find_env() {
+    local dir="$DIR"
+    while true; do
+        [[ -r "$dir/.env" ]] && { printf '%s' "$dir/.env"; return 0; }
+        [[ "$dir" == "/" ]] && return 0
+        dir=$(dirname "$dir")
+    done
+}
+
+# First APP_URL assignment in $1, unquoted and untrimmed of surrounding space.
+# A leading # fails the match, so commented-out values are skipped.
+app_url() {
+    local line url
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        [[ "$line" =~ ^[[:space:]]*APP_URL[[:space:]]*=[[:space:]]*(.*)$ ]] || continue
+        url="${BASH_REMATCH[1]}"
+        url="${url%"${url##*[![:space:]]}"}"
+        url="${url#\"}" url="${url%\"}"
+        url="${url#\'}" url="${url%\'}"
+        printf '%s' "$url"
+        return 0
+    done <"$1"
+}
+
+app() {
+    local env url
+    env=$(find_env)
+    [[ -n "$env" ]] || die "no .env found at or above $DIR"
+
+    url=$(app_url "$env")
+    [[ -n "$url" ]] || die "APP_URL not found in $env"
+
+    open "$url" >/dev/null 2>&1 || die "could not open $url"
+}
+
+main() {
+    local action="${1:-app}"
+    DIR="${2:-${HERDR_ACTIVE_PANE_CWD:-$PWD}}"
+
+    case "$action" in
+        app) app ;;
+        *)   die "unknown action: $action (app)" ;;
+    esac
+}
+
+main "$@"

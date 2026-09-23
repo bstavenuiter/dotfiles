@@ -2,24 +2,32 @@
 # Jump to the herdr agent that needs attention, from anywhere in macOS.
 # Bound to a global hotkey via skhd (cmd + shift - i, see skhd/skhdrc).
 #
-# Installed by hand, like the rest of this repo:
-#
-#   ln -s ~/code/dotfiles/herdr/bin/herdr-jump ~/.local/bin/herdr-jump
+# Installed with GNU stow from the repo root: `stow herdr`.
 
 # skhd runs with a thin environment; don't rely on PATH.
 PATH="$HOME/.local/bin:/opt/homebrew/bin:$PATH"
 
 # Prefer an agent waiting on input; fall back to one that just finished.
+# Emits "pane_id workspace_id" — the space is needed as well as the pane, see
+# the focus calls below.
 pick() {
   echo "$1" | jq -r \
     "[.result.agents[] | select(.agent_status == \"$2\")]
-     | sort_by(.state_change_seq) | last | .pane_id // empty"
+     | sort_by(.state_change_seq) | last
+     | if . then \"\(.pane_id) \(.workspace_id)\" else empty end"
 }
 
 agents=$(herdr agent list 2>/dev/null)
 target=$(pick "$agents" blocked)
 [ -n "$target" ] || target=$(pick "$agents" done)
 
-[ -n "$target" ] && herdr agent focus "$target" >/dev/null 2>&1
+# agent focus alone only moves herdr's own idea of focus: it marks the pane
+# focused but the client keeps drawing the space it was already on. workspace
+# focus is the call the view follows, so the space switch goes through that and
+# agent focus only picks the pane inside it. Same fix as herdr-agents.
+if [ -n "$target" ]; then
+  herdr agent focus "${target% *}" >/dev/null 2>&1
+  herdr workspace focus "${target#* }" >/dev/null 2>&1
+fi
 
 open -a Ghostty
