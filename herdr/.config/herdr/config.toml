@@ -7,6 +7,9 @@ delay_seconds = 1
 [ui.toast.herdr]
 position = "top-left"
 
+[ui.toast.clipboard]
+position = "top-center"
+
 [ui.sound]
 enabled = false
 
