@@ -81,11 +81,11 @@ COMMANDS=(
     "jira-ticket|Jira: open current ticket|key from the branch or folder|"
     "laravel-app|Laravel: open app in browser|APP_URL from the nearest .env|"
     "git-lazygit|Git: lazygit|the repo of this pane|lazygit"
-    "space-switch|Space: switch project|projects under ~/code|herdr-spaces"
-    "space-list|Space: open spaces|every space open right now|herdr-workspaces"
-    "worktree-switch|Worktree: switch|worktrees of this project|herdr-worktrees"
-    "worktree-new|Worktree: new|beside the repo's .bare|herdr-worktree"
-    "agent-switch|Agent: switch|every agent, attention first|herdr-agents"
+    "space-switch|Space: switch project|projects under ~/code|dotfiles.pickers.spaces"
+    "space-list|Space: open spaces|every space open right now|dotfiles.pickers.workspaces"
+    "worktree-switch|Worktree: switch|worktrees of this project|dotfiles.pickers.worktrees"
+    "worktree-new|Worktree: new|beside the repo's .bare|dotfiles.pickers.worktree-new"
+    "agent-switch|Agent: switch|every agent, attention first|dotfiles.pickers.agents"
 )
 
 # "command<TAB>key" for every [[keys.command]] in config.toml, which is where a

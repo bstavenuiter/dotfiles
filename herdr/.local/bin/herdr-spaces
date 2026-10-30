@@ -77,75 +77,6 @@ space_for() {
     return 0
 }
 
-# The repo's own space for a project on the .bare convention: the space herdr
-# hangs a worktree group on, and the only place that group's header text comes
-# from. Empty when the repo has no space open.
-repo_space_id() {
-    "$HERDR" worktree list --cwd "$1" 2>/dev/null \
-        | jq -r '.result.worktrees[]? | select(.is_bare == true) | .open_workspace_id // empty' \
-          2>/dev/null || true
-}
-
-# Open a .bare-convention project the way its worktrees want to be grouped:
-# establish the repo's own space, name it after the project, and leave its shell
-# in the project folder rather than down inside .bare. Returns 1 when the
-# project is not on the convention, so the caller falls back to a plain space.
-open_bare_project() {
-    local project="$1" git_dir="$1/.bare" primary="" name id label pane pane_cwd
-
-    [[ -d "$git_dir" ]] || return 1
-
-    # The primary checkout is a directory called main or master; the branch
-    # inside it is often something else (master, develop), so match the
-    # directory rather than the branch.
-    for name in main master; do
-        if [[ -d "$project/$name" ]] &&
-           git -C "$project/$name" rev-parse --git-dir >/dev/null 2>&1; then
-            primary="$project/$name"
-            break
-        fi
-    done
-    [[ -n "$primary" ]] || return 1
-
-    # Nothing creates the repo's space directly. Opening a worktree with the
-    # repo as the source does it on the way past, which is why the primary
-    # checkout is opened here rather than for its own sake.
-    id=$(repo_space_id "$git_dir")
-    if [[ -z "$id" ]]; then
-        "$HERDR" worktree open --cwd "$git_dir" --path "$primary" --no-focus \
-            >/dev/null 2>&1 || true
-        id=$(repo_space_id "$git_dir")
-    fi
-    [[ -n "$id" ]] || return 1
-
-    # herdr auto-names that space ".bare", and the group header is exactly that
-    # label — identical for every project on the convention, so it says nothing
-    # about which project the group holds. A label chosen by hand is left alone.
-    label=$("$HERDR" workspace get "$id" 2>/dev/null \
-        | jq -r '.result.workspace.label // empty' 2>/dev/null || true)
-    if [[ "$label" == ".bare" ]]; then
-        "$HERDR" workspace rename "$id" "${project##*/}" >/dev/null 2>&1 || true
-    fi
-
-    # Move its shell up out of .bare. The space stays the repo parent through
-    # this: the association is the checkout it was opened on, not wherever its
-    # shell later sits. Only a shell still in .bare is touched, so re-opening a
-    # project never types into a pane that is being used for something.
-    pane=$("$HERDR" pane list --workspace "$id" 2>/dev/null \
-        | jq -r '.result.panes[0].pane_id // empty' 2>/dev/null || true)
-    if [[ -n "$pane" ]]; then
-        pane_cwd=$("$HERDR" pane get "$pane" 2>/dev/null \
-            | jq -r '.result.pane.cwd // empty' 2>/dev/null || true)
-        if [[ "$pane_cwd" == "$git_dir" ]]; then
-            "$HERDR" pane send-text "$pane" "cd $project" >/dev/null 2>&1 || true
-            "$HERDR" pane send-keys "$pane" enter >/dev/null 2>&1 || true
-        fi
-    fi
-
-    "$HERDR" workspace focus "$id" >/dev/null 2>&1 || true
-    return 0
-}
-
 main() {
     if [[ ! -x "$HERDR" ]]; then
         hold "herdr-spaces: no herdr binary at $HERDR."
@@ -172,9 +103,11 @@ main() {
     local existing
     existing=$(space_for "$selected")
 
+    # A .bare project's root carries a .git pointer to it, so a plain space
+    # there is already the repo's own space that its worktrees group under.
     if [[ -n "$existing" ]]; then
         "$HERDR" workspace focus "$existing" >/dev/null 2>&1 || true
-    elif ! open_bare_project "$selected"; then
+    else
         "$HERDR" workspace create \
             --cwd "$selected" \
             --label "${selected##*/}" \

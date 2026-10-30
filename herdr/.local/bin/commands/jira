@@ -4,8 +4,8 @@ set -euo pipefail
 # commands/jira — the Jira ticket the pane is working on.
 #
 # The key is never typed: it is already in the branch name
-# (feature/SHR-3695-csv-download) or in the worktree folder
-# (~/code/sherlock-laravel/shr-3695.sherlock), which is how both are named here.
+# (feature/ABS-3695-csv-download) or in the worktree folder
+# (~/code/example-project/abs-3695.example-project), which is how both are named here.
 # Branch first, folder second — when the two disagree the branch is what is
 # actually checked out, and a worktree sitting on main still opens the ticket
 # its folder is named after.
@@ -50,8 +50,8 @@ load_server() {
     export JIRA_SERVER
 }
 
-# The first key in $1, uppercased, or empty: letters then digits, so SHR-3695,
-# AI-88 and DOOZER-2389 all read. Case-insensitive because the folders here are
+# The first key in $1, uppercased, or empty: letters then digits, so ABS-3695,
+# AI-88 and ABC-2389 all read. Case-insensitive because the folders here are
 # lowercase and the branches are not.
 #
 # Nothing in the shape tells a key apart from a branch like "release-2", which

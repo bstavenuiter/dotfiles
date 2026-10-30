@@ -1,0 +1,97 @@
+# The fzf pickers, opened as plugin popups rather than [[keys.command]] popups.
+# The only difference that matters: a plugin popup shows its pane title in the
+# frame, where a [[keys.command]] popup always reads "popup" — and with six of
+# them that is no way to tell which one is open.
+#
+# Keys can bind plugin actions but not panes, so each picker is a pane (the
+# popup itself) plus an action that opens it; config.toml binds the action.
+# Every pane goes through ./open, which restores the environment a
+# [[keys.command]] popup would have had.
+#
+# Stowed to ~/.config/herdr/pickers, then linked once:
+#   herdr plugin link ~/.config/herdr/pickers
+
+id = "dotfiles.pickers"
+name = "Pickers"
+version = "0.1.0"
+min_herdr_version = "0.9.4"
+description = "Titled popups for the herdr-* fzf pickers"
+platforms = ["macos"]
+
+[[panes]]
+id = "agents"
+title = "Switch agent"
+placement = "popup"
+width = "90%"
+height = "90%"
+command = ["bash", "open", "herdr-agents"]
+
+[[panes]]
+id = "spaces"
+title = "Switch space"
+placement = "popup"
+width = "60%"
+height = "60%"
+command = ["bash", "open", "herdr-spaces"]
+
+[[panes]]
+id = "workspaces"
+title = "Workspaces"
+placement = "popup"
+width = "70%"
+height = "70%"
+command = ["bash", "open", "herdr-workspaces"]
+
+[[panes]]
+id = "worktree-new"
+title = "New worktree"
+placement = "popup"
+width = "70%"
+height = "70%"
+command = ["bash", "open", "herdr-worktree"]
+
+[[panes]]
+id = "worktrees"
+title = "Switch worktree"
+placement = "popup"
+width = "70%"
+height = "70%"
+command = ["bash", "open", "herdr-worktrees"]
+
+[[panes]]
+id = "palette"
+title = "Command palette"
+placement = "popup"
+width = "60%"
+height = "60%"
+command = ["bash", "open", "herdr-palette"]
+
+[[actions]]
+id = "agents"
+title = "Switch agent"
+command = ["herdr", "plugin", "pane", "open", "--plugin", "dotfiles.pickers", "--entrypoint", "agents"]
+
+[[actions]]
+id = "spaces"
+title = "Switch space"
+command = ["herdr", "plugin", "pane", "open", "--plugin", "dotfiles.pickers", "--entrypoint", "spaces"]
+
+[[actions]]
+id = "workspaces"
+title = "Workspaces"
+command = ["herdr", "plugin", "pane", "open", "--plugin", "dotfiles.pickers", "--entrypoint", "workspaces"]
+
+[[actions]]
+id = "worktree-new"
+title = "New worktree"
+command = ["herdr", "plugin", "pane", "open", "--plugin", "dotfiles.pickers", "--entrypoint", "worktree-new"]
+
+[[actions]]
+id = "worktrees"
+title = "Switch worktree"
+command = ["herdr", "plugin", "pane", "open", "--plugin", "dotfiles.pickers", "--entrypoint", "worktrees"]
+
+[[actions]]
+id = "palette"
+title = "Command palette"
+command = ["herdr", "plugin", "pane", "open", "--plugin", "dotfiles.pickers", "--entrypoint", "palette"]

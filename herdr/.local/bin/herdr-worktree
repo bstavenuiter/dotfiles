@@ -4,26 +4,26 @@ set -euo pipefail
 # herdr-worktree — create a git worktree beside its .bare and open it as a space.
 #
 # Herdr's built-in new-worktree action puts checkouts in <worktrees.directory>/
-# <repo_name>/<branch>, which this repo's layout breaks in two ways: the
-# checkout lands under ~/.herdr rather than next to its siblings, and repo_name
-# resolves to ".bare" for every project using the convention, so they all pile
-# into one directory. That setting is a single global path with no per-repo
-# templating (a relative value resolves against the herdr server's cwd, not the
-# repo), so the placement has to be computed here and passed as --path.
+# <repo_name>/<branch>, so the checkout lands under ~/.herdr rather than next to
+# its siblings, named after the whole branch. That setting is a single global
+# path with no per-repo templating (a relative value resolves against the herdr
+# server's cwd, not the repo), so the placement has to be computed here and
+# passed as --path.
 #
 # Layout assumed, matching ~/code:
 #
 #   ~/code/myproject/.bare              <- the repo
+#   ~/code/myproject/.git               <- "gitdir: ./.bare"
 #   ~/code/myproject/main               <- worktrees, siblings of .bare
 #   ~/code/myproject/feat-123.myproject
 #
-# The trailing ".myproject" is per-project, read from git config on the repo:
+# The trailing ".myproject" is the project directory's name. A repo can
+# override it in git config:
 #
 #   git -C ~/code/myproject/.bare config wt.suffix .myproject
 #
 # Git resolves that from every worktree of the repo, including ones created
-# later, so it needs setting once per project. Projects that never set it just
-# get bare leaf names.
+# later, so it needs setting once per project.
 #
 # Launched from a herdr popup bound to prefix + ctrl + w, mirroring the tmux
 # binding for wt (see ~/.config/herdr/config.toml).
@@ -50,7 +50,38 @@ slugify() {
     printf '%s' "${1##*/}" | tr -cs '[:alnum:]._-' '-' | sed 's/^-*//; s/-*$//'
 }
 
+# Local branches, then remote ones that have no local branch yet (as
+# origin/<name>), each newest commit first. Remote HEAD aliases are dropped.
+branches() {
+    local git_dir="$1"
+
+    git --git-dir="$git_dir" for-each-ref --format='%(refname:short)' \
+        --sort=-committerdate refs/heads
+
+    # Two inputs rather than -v, which cannot carry a multi-line value: the
+    # first loads the local names, the second walks the remote refs.
+    awk '
+        FILENAME == ARGV[1] { have[$0] = 1; next }
+        {
+            ref = $0
+            sub(/^refs\/remotes\//, "", ref)
+            if (ref ~ /\/HEAD$/) next
+            name = ref
+            sub(/^[^\/]*\//, "", name)
+            if (!(name in have)) print ref
+        }
+    ' <(git --git-dir="$git_dir" for-each-ref --format='%(refname:short)' refs/heads) \
+      <(git --git-dir="$git_dir" for-each-ref --format='%(refname)' \
+            --sort=-committerdate refs/remotes)
+}
+
 main() {
+    # fzf's ctrl-f reload calls back in here for a fresh list after fetching.
+    if [[ "${1:-}" == "--branches" ]]; then
+        branches "$2"
+        exit 0
+    fi
+
     if [[ ! -x "$HERDR" ]]; then
         hold "herdr-worktree: no herdr binary at $HERDR."
         exit 0
@@ -79,25 +110,49 @@ main() {
 
     local suffix
     suffix=$(git -C "$source_dir" config --get wt.suffix 2>/dev/null || true)
+    [[ -n "$suffix" ]] || suffix=".$(basename "$parent")"
 
     # Existing branches to pick from; --print-query lets a typed name through so
-    # the same prompt creates a new branch.
-    local branch
-    branch=$(git -C "$git_dir" for-each-ref --format='%(refname:short)' \
-                 --sort=-committerdate refs/heads \
+    # the same prompt creates a new branch. ctrl-f fetches and reloads, so
+    # opening the picker never waits on the network.
+    local branch self quoted_git_dir
+    self=$(printf '%q' "${BASH_SOURCE[0]}")
+    quoted_git_dir=$(printf '%q' "$git_dir")
+    branch=$(branches "$git_dir" \
              | fzf --print-query --prompt="branch> " \
-                   --header="enter: use branch (type a new name to create it)" \
+                   --header="enter: use branch (type a new name to create it), ctrl-f: fetch" \
+                   --bind="ctrl-f:reload(git --git-dir=$quoted_git_dir fetch --prune --quiet >/dev/null 2>&1; $self --branches $quoted_git_dir)" \
              | tail -1) || true
     [[ -n "$branch" ]] || exit 0
 
-    # Directory name is a human choice — feature/feat-123-export lives
-    # in feat-123.myproject — so offer the slug and let it be edited.
+    # A remote branch with no local one yet: create the local branch tracking
+    # it, rather than leaving herdr to cut a same-named branch from HEAD.
+    if ! git --git-dir="$git_dir" show-ref --verify --quiet "refs/heads/$branch" &&
+       git --git-dir="$git_dir" show-ref --verify --quiet "refs/remotes/$branch"; then
+        if ! git --git-dir="$git_dir" branch --quiet --track "${branch#*/}" "$branch" 2>/dev/null; then
+            hold "herdr-worktree: could not create a local branch for $branch."
+            exit 0
+        fi
+        branch="${branch#*/}"
+    fi
+
+    # Directory name is a human choice — feature/ABC-123-export lives in
+    # ABC-123.myproject — so offer the ticket id (or the slug when the branch
+    # has none) and let it be edited.
+    local default
+    default=$(grep -oE '[A-Za-z]+-[0-9]+' <<<"${branch##*/}" | head -1 || true)
+    [[ -n "$default" ]] || default=$(slugify "$branch")
+
+    # fzf rather than `read -i`: macOS ships bash 3.2, which has no -i to
+    # prefill the line. With no input, enter just returns the edited query.
     local name
-    read -r -e -p "directory> " -i "$(slugify "$branch")" name </dev/tty || exit 0
+    name=$(fzf --print-query --query="$default$suffix" --prompt="directory> " \
+               --header="enter: create worktree in this directory" </dev/null \
+           | head -1) || true
     name=$(slugify "$name")
     [[ -n "$name" ]] || exit 0
 
-    local wt_path="$parent/$name$suffix"
+    local wt_path="$parent/$name"
     if [[ -e "$wt_path" ]]; then
         hold "herdr-worktree: $wt_path already exists."
         exit 0

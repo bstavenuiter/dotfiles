@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+#
+# open — run one of the herdr-* pickers inside a plugin popup.
+#
+# A plugin popup starts in the plugin's own directory and gets no
+# HERDR_ACTIVE_PANE_CWD, both of which a [[keys.command]] popup takes from the
+# pane it was opened over. The worktree pickers and the palette's commands act
+# on that directory, so rebuild both from the focused pane in the plugin
+# context, and the pickers cannot tell the two kinds of popup apart.
+#
+# Usage: open <picker>   (from herdr-plugin.toml)
+
+# herdr popups run with a thin environment; don't rely on PATH.
+PATH="$HOME/.local/bin:/opt/homebrew/bin:$PATH"
+
+cwd=$(printf '%s' "${HERDR_PLUGIN_CONTEXT_JSON:-}" \
+    | jq -r '.focused_pane_cwd // .workspace_cwd // empty' 2>/dev/null)
+if [[ -n "$cwd" ]]; then
+    export HERDR_ACTIVE_PANE_CWD="$cwd"
+    cd "$cwd" || true
+fi
+
+exec "$1"
